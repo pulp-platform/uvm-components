@@ -216,9 +216,6 @@ module core_tb;
     task preload_memories();
         string plus_args [$];
 
-        longint unsigned bss_address;
-        longint unsigned bss_size;
-
         string file;
         string file_name;
         string base_dir;
