@@ -16,22 +16,54 @@
 // (http://www.pulp-platform.org), under the copyright of ETH Zurich and the
 // University of Bologna.
 //
-module boot_rom (
+module boot_rom #(
+        string fdt_path = "dts_spike.dtb"
+    )
+    (
     input  logic [63:0] address_i,
     output logic [63:0] data_o
 );
+
+    // one kilobyte of device tree for now
+    logic [63:0] fdt [128];
 
     always_comb begin
 
         data_o = 64'hx;
 
+        // auipc   t0, 0x0
+        // addi    a1, t0, 32
+        // csrr    a0, mhartid
+        // ld      t0, 24(t0)
+        // jr      t0
         case (address_i & (~3'h7))
             64'h1000: data_o = 64'h02028593_00000297;
             64'h1008: data_o = 64'h0182b283_f1402573;
             64'h1010: data_o = 64'hxxxxxxxx_00028067;
+            // boot address
             64'h1018: data_o = 64'h00000000_80000000;
+            // device tree
+            default: begin
+
+            end
         endcase
     end
 
+    // read device tree
+    initial begin
+        logic [8:0] mem [1024];
+        int strange_byte;
+        int f_byte;
+        int f_bin;
 
+        if (fdt_path != "") begin
+            f_bin = $fopen(fdt_path,"rb");
+            f_byte = $fgetc(f_bin);
+
+            while (!$feof(f_bin)) begin
+                // $display("%2h\n", f_byte);
+                f_byte = $fgetc(f_bin);
+            end
+        end
+    end
 endmodule
