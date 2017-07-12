@@ -44,39 +44,55 @@ module core_mem (
     // we always grant the access
     localparam ADDRESS_WIDTH = 16;
 
-    logic [ADDRESS_WIDTH-1:0] instr_address;
+    logic [63:0] instr_address_q;
+    logic [63:0] fetch_data_ram, fetch_data_rom;
+
     // D$ Mock
     logic                     req, we;
     logic [7:0]               be;
     logic [11:0]              index;
     logic [63:0]              wdata;
     logic [55:0]              data_address;
+    logic [63:0]              data_ram, data_rom;
 
     assign data_address = {data_if_address_tag_i, index[11:3]};
     // we always grant the request
     assign instr_if_data_gnt_o   = instr_if_data_req_i;
     assign instr_address         = instr_if_address_i[ADDRESS_WIDTH-1+3:3];
 
+    // look at the address of the previous cycle to determine what to return
+    assign instr_if_data_rdata_o = instr_address_q[31] ? fetch_data_ram : fetch_data_rom;
+    assign data_if_data_rdata_o = data_address[31] ? data_ram : data_rom;
+
     dp_ram  #(
-        .ADDR_WIDTH    ( ADDRESS_WIDTH                   ),
-        .DATA_WIDTH    ( 64                              )
+        .ADDR_WIDTH    ( ADDRESS_WIDTH                            ),
+        .DATA_WIDTH    ( 64                                       )
     ) ram_i (
-        .clk           ( clk_i                           ),
-        .en_a_i        ( 1'b1                            ),
-        .addr_a_i      ( instr_address                   ),
-        .wdata_a_i     (                                 ), // not connected
-        .rdata_a_o     ( instr_if_data_rdata_o           ),
-        .we_a_i        ( 1'b0                            ), // r/o interface
-        .be_a_i        (                                 ),
+        .clk           ( clk_i                                    ),
+        .en_a_i        ( 1'b1                                     ),
+        .addr_a_i      ( instr_if_address_i[ADDRESS_WIDTH-1+3:3]  ),
+        .wdata_a_i     (                                          ), // not connected
+        .rdata_a_o     ( fetch_data_ram                           ),
+        .we_a_i        ( 1'b0                                     ), // r/o interface
+        .be_a_i        (                                          ),
         // data RAM
-        .en_b_i        ( req                             ),
-        .addr_b_i      ( data_address[ADDRESS_WIDTH-1:0] ),
-        .wdata_b_i     ( wdata                           ),
-        .rdata_b_o     ( data_if_data_rdata_o            ),
-        .we_b_i        ( we                              ),
-        .be_b_i        ( be                              )
+        .en_b_i        ( req                                      ),
+        .addr_b_i      ( data_address[ADDRESS_WIDTH-1:0]          ),
+        .wdata_b_i     ( wdata                                    ),
+        .rdata_b_o     ( data_ram                                 ),
+        .we_b_i        ( we                                       ),
+        .be_b_i        ( be                                       )
     );
 
+    boot_rom instr_boot_rom_i (
+        .address_i ( instr_address_q ),
+        .data_o    ( fetch_data_rom  )
+    );
+
+    boot_rom data_boot_rom_i (
+        .address_i ( {5'b0, data_address, 3'b0}    ),
+        .data_o    ( data_rom        )
+    );
     // ----------------------
     // DCache Mock Interface
     // ----------------------
@@ -106,6 +122,7 @@ module core_mem (
             instr_if_data_rvalid_o <= 1'b0;
         end else begin
             instr_if_data_rvalid_o <= instr_if_data_req_i;
+            instr_address_q        <= instr_if_address_i;
         end
     end
 endmodule
