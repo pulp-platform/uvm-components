@@ -80,7 +80,7 @@ module core_mem (
         .addr_b_i      ( data_address[ADDRESS_WIDTH-1:0]          ),
         .wdata_b_i     ( wdata                                    ),
         .rdata_b_o     ( data_ram                                 ),
-        .we_b_i        ( we                                       ),
+        .we_b_i        ( (data_address[28] ? we : 1'b0)           ),
         .be_b_i        ( be                                       )
     );
 

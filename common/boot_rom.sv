@@ -25,7 +25,7 @@ module boot_rom #(
 );
 
     // one kilobyte of device tree for now
-    logic [63:0] fdt [0:128];
+    logic [63:0] fdt [0:256];
     always_comb begin
         automatic logic [63:0] fdt_address = address_i - 64'h1020;
 

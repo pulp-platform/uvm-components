@@ -255,6 +255,7 @@ module core_tb;
             // we are interested in the .tohost ELF symbol in-order to observe end of test signals
             tohost_address = get_section_address(".tohost");
             begin_signature_address = get_symbol_address("begin_signature");
+            `uvm_info("Program Loader", $sformatf("tohost: %h begin_signature %h\n", tohost_address, begin_signature_address), UVM_LOW);
             // pass tohost address to UVM resource DB
             uvm_config_db #(longint unsigned)::set(null, "uvm_test_top.m_env.m_eoc", "tohost", tohost_address);
             uvm_config_db #(longint unsigned)::set(null, "uvm_test_top.m_env.m_eoc", "begin_signature", ((begin_signature_address -`DRAM_BASE) >> 3));

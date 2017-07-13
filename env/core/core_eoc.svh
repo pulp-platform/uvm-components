@@ -24,6 +24,9 @@ class core_eoc extends uvm_component;
     int f;
     string sig_dump_name;
     string base_dir;
+
+    string_buffer sb;
+
     // get the command line processor for parsing the plus args
     static uvm_cmdline_processor uvcl = uvm_cmdline_processor::get_inst();
 
@@ -35,6 +38,7 @@ class core_eoc extends uvm_component;
     // Standard UVM Methods:
     function new(string name = "core_eoc", uvm_component parent = null);
         super.new(name, parent);
+
     endfunction
 
     function void build_phase(uvm_phase phase);
@@ -46,6 +50,9 @@ class core_eoc extends uvm_component;
         if(uvcl.get_arg_value("+signature=", sig_dump_name) == 0) begin
             sig_dump_name = "test.ariane.sig";
         end
+
+        // create a new string buffer and intercept the characters written to the UART address
+        sb = new("sb", this);
 
         sig_dump_name = {base_dir, "/", sig_dump_name};
 
@@ -70,6 +77,12 @@ class core_eoc extends uvm_component;
                 `uvm_info( "Core Test",  $sformatf("*** SUCCESS *** (tohost = %0d)", exit_code), UVM_LOW)
 
             got_write = 1'b1;
+        end
+
+        // UART Hack
+        if (seq_item.address == 'h3000000) begin
+            // $display("%c", seq_item.wdata);
+            sb.append(seq_item.wdata[7:0]);
         end
 
     endfunction
