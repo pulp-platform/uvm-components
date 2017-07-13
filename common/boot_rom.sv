@@ -25,9 +25,9 @@ module boot_rom #(
 );
 
     // one kilobyte of device tree for now
-    logic [63:0] fdt [128];
-
+    logic [63:0] fdt [0:128];
     always_comb begin
+        automatic logic [63:0] fdt_address = address_i - 64'h1020;
 
         data_o = 64'hx;
 
@@ -44,26 +44,27 @@ module boot_rom #(
             64'h1018: data_o = 64'h00000000_80000000;
             // device tree
             default: begin
-
+                data_o = fdt[fdt_address[63:3]];
             end
         endcase
     end
 
     // read device tree
     initial begin
-        logic [8:0] mem [1024];
-        int strange_byte;
         int f_byte;
         int f_bin;
+        logic [63:0] out;
 
         if (fdt_path != "") begin
             f_bin = $fopen(fdt_path,"rb");
-            f_byte = $fgetc(f_bin);
 
-            while (!$feof(f_bin)) begin
-                // $display("%2h\n", f_byte);
-                f_byte = $fgetc(f_bin);
-            end
+            f_byte = $fread(fdt, f_bin);
+
+            foreach (fdt[i]) begin
+                fdt[i] = { << byte {fdt[i]}};
+                $display("%h", fdt[i]);
+          end
+
         end
     end
 endmodule
