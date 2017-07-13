@@ -17,7 +17,7 @@
 // University of Bologna.
 //
 module boot_rom #(
-        string fdt_path = "dts_spike.dtb"
+        string fdt_path = "ariane_tb.dtb"
     )
     (
     input  logic [63:0] address_i,
