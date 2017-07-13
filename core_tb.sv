@@ -253,7 +253,7 @@ module core_tb;
             uvm_config_db #(virtual dcache_if )::set(null, "uvm_test_top", "dcache_if", dcache_if);
 
             // we are interested in the .tohost ELF symbol in-order to observe end of test signals
-            tohost_address = get_section_address(".tohost");
+            tohost_address = get_symbol_address("tohost");
             begin_signature_address = get_symbol_address("begin_signature");
             uvm_report_info("Program Loader", $sformatf("tohost: %h begin_signature %h\n", tohost_address, begin_signature_address), UVM_LOW);
             // pass tohost address to UVM resource DB

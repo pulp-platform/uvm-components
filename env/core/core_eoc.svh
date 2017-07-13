@@ -14,16 +14,17 @@
 // (http://www.pulp-platform.org), under the copyright of ETH Zurich and the
 // University of Bologna.
 
-class core_eoc extends uvm_component;
+class core_eoc extends uvm_scoreboard;
     // UVM Factory Registration Macro
     `uvm_component_utils(core_eoc)
     longint unsigned tohost;
     longint unsigned begin_signature;
-    logic got_write = 1'b0;
+    event got_write;
     int exit_code = 0;
     int f;
     string sig_dump_name;
     string base_dir;
+    uvm_phase phase;
 
     string_buffer sb;
 
@@ -76,7 +77,8 @@ class core_eoc extends uvm_component;
             else
                 `uvm_info( "Core Test",  $sformatf("*** SUCCESS *** (tohost = %0d)", exit_code), UVM_LOW)
 
-            got_write = 1'b1;
+            -> got_write;
+
         end
 
         // UART Hack
@@ -88,11 +90,12 @@ class core_eoc extends uvm_component;
     endfunction
 
     task run_phase(uvm_phase phase);
-        phase.raise_objection(this, "core_eoc");
-
         super.run_phase(phase);
-        wait (got_write);
+
+        phase.raise_objection(this, "core_eoc");
+        @got_write;
         phase.drop_objection(this, "core_eoc");
+
     endtask
 
     virtual function void extract_phase( uvm_phase phase );
