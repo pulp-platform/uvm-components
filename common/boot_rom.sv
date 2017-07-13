@@ -61,8 +61,9 @@ module boot_rom #(
             f_byte = $fread(fdt, f_bin);
 
             foreach (fdt[i]) begin
+                // reverse bytes
                 fdt[i] = { << byte {fdt[i]}};
-                $display("%h", fdt[i]);
+                // $display("%h", fdt[i]);
           end
 
         end
