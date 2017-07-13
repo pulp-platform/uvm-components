@@ -22,7 +22,8 @@ class string_buffer extends uvm_component;
     -------------------------------------------------------------------------------*/
     // string buffer
     byte buffer [$];
-
+    // name to display in console
+    string logger_name;
     /*-------------------------------------------------------------------------------
     -- UVM Factory register
     -------------------------------------------------------------------------------*/
@@ -35,7 +36,13 @@ class string_buffer extends uvm_component;
         // Constructor
         function new(string name = "string_buffer", uvm_component parent=null);
             super.new(name, parent);
+            // default logger name
+            logger_name = "String Buffer";
         endfunction : new
+
+        function void set_logger(string logger_name);
+            this.logger_name = logger_name;
+        endfunction : set_logger
 
         function void flush();
             string s;
@@ -44,7 +51,7 @@ class string_buffer extends uvm_component;
                 s = $sformatf("%s%c",s, buffer[i]);
             end
 
-            `uvm_info("String Buffer", s, UVM_LOW);
+            uvm_report_info(logger_name, s, UVM_LOW);
 
             // clear buffer afterwards
             buffer = {};

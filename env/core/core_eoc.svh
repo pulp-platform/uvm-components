@@ -38,7 +38,6 @@ class core_eoc extends uvm_component;
     // Standard UVM Methods:
     function new(string name = "core_eoc", uvm_component parent = null);
         super.new(name, parent);
-
     endfunction
 
     function void build_phase(uvm_phase phase);
@@ -53,6 +52,7 @@ class core_eoc extends uvm_component;
 
         // create a new string buffer and intercept the characters written to the UART address
         sb = new("sb", this);
+        sb.set_logger("UART");
 
         sig_dump_name = {base_dir, "/", sig_dump_name};
 
