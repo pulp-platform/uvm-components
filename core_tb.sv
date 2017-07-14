@@ -38,7 +38,7 @@ module core_tb;
 
     logic clk_i;
     logic rst_ni;
-    logic rtc_i;
+    logic [63:0] time_i;
 
     logic display_instr;
 
@@ -141,7 +141,7 @@ module core_tb;
     ariane dut (
         .clk_i                   ( clk_i                        ),
         .rst_ni                  ( rst_ni                       ),
-        .rtc_i                   ( rtc_i                        ),
+        .time_i                  ( time_i                       ),
         .clock_en_i              ( core_if.clock_en             ),
         .test_en_i               ( core_if.test_en              ),
         .fetch_enable_i          ( core_if.fetch_enable         ),
@@ -208,9 +208,14 @@ module core_tb;
     end
     // Real Time Clock
     initial begin
-        rtc_i = 1'b0;
-        forever
-            #15.258us rtc_i = ~rtc_i;
+        // initialize platform timer
+        time_i = 64'b0;
+
+        // increment timer with a frequency of 32.768 kHz
+        forever begin
+            #30.517578125us;
+            time_i++;
+        end
     end
 
     task preload_memories();
