@@ -213,7 +213,7 @@ module core_tb;
 
         // increment timer with a frequency of 32.768 kHz
         forever begin
-            #30.517578125us;
+            #30.517578us;
             time_i++;
         end
     end
