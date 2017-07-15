@@ -44,7 +44,7 @@ module coreplex_tb;
         .clk_i          ( clk_i          ),
         .clock_en_i     ( clock_en_i     ),
         .rst_ni         ( rst_ni         ),
-        .test_en_i      ( test_en_i      ),
+        .test_en_i      ( 1'b0           ),
         .fetch_enable_i ( fetch_enable_i )
     );
 
@@ -66,6 +66,18 @@ module coreplex_tb;
         end
     end
 
+    // ------------------
+    // Fetch Enable
+    // ------------------
+    initial begin
+
+        fetch_enable_i = 1'b0;
+        wait (20ns);
+        wait (rst_ni);
+        wait (200ns);
+        fetch_enable_i = 1'b1;
+
+    end
     task preload_memories();
         string plus_args [$];
 
