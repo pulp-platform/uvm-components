@@ -22,6 +22,8 @@ import ariane_pkg::*;
 import uvm_pkg::*;
 import core_lib_pkg::*;
 
+`timescale 1ns / 1ps
+
 `define DRAM_BASE 64'h80000000
 
 `include "uvm_macros.svh"
