@@ -42,7 +42,7 @@ module core_mem (
     output logic [63:0]              data_if_data_rdata_o
 );
     // we always grant the access
-    localparam ADDRESS_WIDTH = 20;
+    localparam ADDRESS_WIDTH = 24;
 
     logic [63:0] instr_address_q;
     logic [63:0] fetch_data_ram, fetch_data_rom;
