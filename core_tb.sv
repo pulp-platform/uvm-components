@@ -200,8 +200,8 @@ module core_tb;
             #(CLOCK_PERIOD/2) clk_i = 1'b1;
             #(CLOCK_PERIOD/2) clk_i = 1'b0;
 
-            if (cycles > max_cycles)
-                $fatal(1, "Simulation reached maximum cycle count of %d", max_cycles);
+            //if (cycles > max_cycles)
+            //    $fatal(1, "Simulation reached maximum cycle count of %d", max_cycles);
 
             cycles++;
         end
