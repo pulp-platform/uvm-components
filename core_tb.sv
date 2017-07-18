@@ -22,6 +22,8 @@ import ariane_pkg::*;
 import uvm_pkg::*;
 import core_lib_pkg::*;
 
+`timescale 1ns / 1ps
+
 `define DRAM_BASE 64'h80000000
 
 `include "uvm_macros.svh"
@@ -142,6 +144,7 @@ module core_tb;
         .clk_i                   ( clk_i                        ),
         .rst_ni                  ( rst_ni                       ),
         .time_i                  ( time_i                       ),
+        .time_irq_i              ( 1'b0                         ),
         .clock_en_i              ( core_if.clock_en             ),
         .test_en_i               ( core_if.test_en              ),
         .fetch_enable_i          ( core_if.fetch_enable         ),
@@ -226,7 +229,7 @@ module core_tb;
         string base_dir;
         string test;
         // offset the temporary RAM
-        logic [63:0] rmem [2**20];
+        logic [63:0] rmem [2**21];
 
         // get the file name from a command line plus arg
         void'(uvcl.get_arg_value("+BASEDIR=", base_dir));
@@ -241,7 +244,7 @@ module core_tb;
         // get the objdump verilog file to load our memorys
         $readmemh({file, ".hex"}, rmem);
         // copy double-wordwise from verilog file
-        for (int i = 0; i < 2**20; i++) begin
+        for (int i = 0; i < 2**21; i++) begin
             core_mem_i.ram_i.mem[i] = rmem[i];
         end
 

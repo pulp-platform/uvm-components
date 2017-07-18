@@ -17,6 +17,8 @@
 // University of Bologna.
 //
 
+`timescale 1ns / 1ps
+
 module random_stalls
 (
     input  logic         clk_i,
