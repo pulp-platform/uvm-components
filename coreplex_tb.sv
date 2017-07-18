@@ -32,9 +32,10 @@ module coreplex_tb;
     static uvm_cmdline_processor uvcl = uvm_cmdline_processor::get_inst();
 
     localparam int unsigned CLOCK_PERIOD = 20ns;
-
+    localparam int unsigned RTC_PERIOD = (30.517578us/2);
     logic clk_i;
     logic rst_ni;
+    logic rtc_i;
 
     logic clock_en_i;
     logic test_en_i;
@@ -42,6 +43,7 @@ module coreplex_tb;
 
     coreplex dut (
         .clk_i          ( clk_i          ),
+        .rtc_i          ( rtc_i          ),
         .clock_en_i     ( clock_en_i     ),
         .rst_ni         ( rst_ni         ),
         .test_en_i      ( 1'b0           ),
@@ -63,6 +65,14 @@ module coreplex_tb;
         forever begin
             #(CLOCK_PERIOD/2) clk_i = 1'b1;
             #(CLOCK_PERIOD/2) clk_i = 1'b0;
+        end
+    end
+
+    initial begin
+        rtc_i = 1'b0;
+        forever begin
+            #(RTC_PERIOD) rtc_i = 1'b1;
+            #(RTC_PERIOD) rtc_i = 1'b0;
         end
     end
 
