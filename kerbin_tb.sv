@@ -23,7 +23,7 @@ import uvm_pkg::*;
 
 `include "uvm_macros.svh"
 
-module coreplex_tb;
+module kerbin_tb;
     import "DPI-C" function chandle read_elf(string fn);
     import "DPI-C" function longint unsigned get_section_address(string symb);
     import "DPI-C" function longint unsigned get_section_size(string symb);
