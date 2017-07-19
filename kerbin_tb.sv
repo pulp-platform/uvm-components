@@ -41,7 +41,7 @@ module kerbin_tb;
     logic test_en_i;
     logic fetch_enable_i;
 
-    uncore dut (
+    kerbin dut (
         .clk_i          ( clk_i          ),
         .rtc_i          ( rtc_i          ),
         .clock_en_i     ( clock_en_i     ),
@@ -112,7 +112,7 @@ module kerbin_tb;
         $readmemh({file, ".hex"}, rmem);
         // copy double-wordwise from verilog file
         for (int i = 0; i < 16384; i++) begin
-            dut.sp_ram_i.mem[i] = rmem[i];
+            dut.uncore_i.sp_ram_i.mem[i] = rmem[i];
         end
 
     endtask : preload_memories
