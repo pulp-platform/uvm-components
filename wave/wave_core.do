@@ -40,3 +40,5 @@ add wave -noupdate -group commit_stage /core_tb/dut/commit_stage_i/*
 add wave -noupdate -group csr_file /core_tb/dut/csr_regfile_i/*
 
 add wave -noupdate -group controller /core_tb/dut/controller_i/*
+
+add wave -noupdate -group debug /core_tb/dut/debug_unit_i/*
