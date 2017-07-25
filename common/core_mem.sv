@@ -88,7 +88,7 @@ module core_mem (
         .clk_i     ( clk_i           ),
         .rst_ni    ( rst_ni          ),
         .address_i ( instr_address_q ),
-        .data_o    ( fetch_data_rom  )
+        .data_o    ( fetch_data_rom  ),
         .data_q_o  (                 ),
         .req_i     (                 ),
         .grant_o   (                 ),
@@ -99,7 +99,7 @@ module core_mem (
         .clk_i     ( clk_i                      ),
         .rst_ni    ( rst_ni                     ),
         .address_i ( {5'b0, data_address, 3'b0} ),
-        .data_o    ( data_rom                   )
+        .data_o    ( data_rom                   ),
         .data_q_o  (                            ),
         .req_i     (                            ),
         .grant_o   (                            ),
