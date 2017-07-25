@@ -17,11 +17,16 @@
 // University of Bologna.
 //
 module boot_rom #(
-        string fdt_path = "ariane_tb.dtb"
-    )
-    (
+    parameter string fdt_path = "ariane_tb.dtb"
+)(
+    input  logic        clk_i,
+    input  logic        rst_ni,
     input  logic [63:0] address_i,
-    output logic [63:0] data_o
+    output logic [63:0] data_o, // combinatorial output
+    output logic [63:0] data_q_o, // sequential output
+    input  logic        req_i,
+    output logic        grant_o,
+    output logic        rvalid_o
 );
 
     // one kilobyte of device tree for now
@@ -47,6 +52,19 @@ module boot_rom #(
                 data_o = fdt[fdt_address[63:3]];
             end
         endcase
+        // we immediately give a grant - it's a ROM, nothing indeterministic about it
+        grant_o = req_i;
+    end
+
+    // Sequential Process
+    always_ff @(posedge clk_i or negedge rst_ni) begin
+        if (~rst_ni) begin
+            rvalid_o <= 1'b0;
+            data_q_o <= 'x;
+        end else begin
+            rvalid_o <= req_i;
+            data_q_o <= data_o;
+        end
     end
 
     // read device tree
