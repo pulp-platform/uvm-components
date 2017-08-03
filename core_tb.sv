@@ -140,6 +140,8 @@ module core_tb;
         .data_if_data_rdata_o    ( data_if_data_rdata_o         )
     );
 
+    logic flush_dcache;
+
     ariane dut (
         .clk_i                   ( clk_i                        ),
         .rst_ni                  ( rst_ni                       ),
@@ -150,6 +152,8 @@ module core_tb;
         .fetch_enable_i          ( core_if.fetch_enable         ),
         .core_busy_o             ( core_if.core_busy            ),
         .flush_icache_o          (                              ),
+        .flush_dcache_o          ( flush_dcache                 ),
+        .flush_dcache_ack_i      ( flush_dcache                 ),
         .ext_perf_counters_i     (                              ),
         .boot_addr_i             ( core_if.boot_addr            ),
         .core_id_i               ( core_if.core_id              ),
