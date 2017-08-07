@@ -41,6 +41,9 @@ module kerbin_tb;
     logic test_en_i;
     logic fetch_enable_i;
 
+    dcache_if dcache_if (clk_i);
+
+    // bind dut.uncore_i.coreplex_i.ariane_i dcache_if
     kerbin dut (
         .clk_i          ( clk_i          ),
         .rtc_i          ( rtc_i          ),
@@ -96,7 +99,7 @@ module kerbin_tb;
         string base_dir;
         string test;
         // offset the temporary RAM
-        logic [63:0] rmem [16384];
+        logic [63:0] rmem [2**21];
 
         // get the file name from a command line plus arg
         void'(uvcl.get_arg_value("+BASEDIR=", base_dir));
@@ -111,20 +114,31 @@ module kerbin_tb;
         // get the objdump verilog file to load our memorys
         $readmemh({file, ".hex"}, rmem);
         // copy double-wordwise from verilog file
-        for (int i = 0; i < 16384; i++) begin
+        for (int i = 0; i < 2**21; i++) begin
             dut.uncore_i.sp_ram_i.mem[i] = rmem[i];
         end
 
     endtask : preload_memories
 
-    program testbench ();
+    program testbench (dcache_if dcache_if);
+        longint unsigned begin_signature_address;
+        longint unsigned tohost_address;
+        string max_cycle_string;
 
         initial begin
             preload_memories();
-        end
 
+            uvm_config_db #(virtual dcache_if )::set(null, "uvm_test_top", "dcache_if", dcache_if);
+            // we are interested in the .tohost ELF symbol in-order to observe end of test signals
+            tohost_address = get_symbol_address("tohost");
+            begin_signature_address = get_symbol_address("begin_signature");
+            uvm_report_info("Program Loader", $sformatf("tohost: %h begin_signature %h\n", tohost_address, begin_signature_address), UVM_LOW);
+
+            // Start UVM test
+            // run_test();
+        end
     endprogram
 
-    testbench tb();
+    testbench tb(dcache_if);
 
 endmodule
