@@ -42,11 +42,10 @@ module boot_rom #(
         // ld      t0, 24(t0)
         // jr      t0
         case (address_i & (~3'h7))
-            64'h1000: data_o = 64'h02028593_00000297;
-            64'h1008: data_o = 64'h0182b283_f1402573;
-            64'h1010: data_o = 64'hxxxxxxxx_00028067;
-            // boot address
-            64'h1018: data_o = 64'h00000000_80000000;
+            64'h1000: data_o = 64'h00a2a02345056291;
+            64'h1008: data_o = 64'h0202859302fe4285;
+            64'h1010: data_o = 64'h00028067f1402573;
+            64'h1018: data_o = 64'h0000000000000000;
             // device tree
             default: begin
                 data_o = fdt[fdt_address[63:3]];
