@@ -43,6 +43,48 @@ module kerbin_tb;
 
     dcache_if dcache_if (clk_i);
 
+    localparam BAUDRATE = 781250; // 1562500
+    localparam TCP_PORT = 4567;
+
+    // ------------------
+    // UART
+    // ------------------
+    logic uart_tx;
+    logic uart_rx;
+    // use 8N1
+    uart_bus #(
+      .BAUD_RATE  ( BAUDRATE ),
+      .PARITY_EN  ( 0        )
+    ) i_uart (
+      .rx         ( uart_rx  ),
+      .tx         ( uart_tx  ),
+      .rx_en      ( 1'b1     )
+    );
+
+    // ------------------
+    // JTAG DPI
+    // ------------------
+    logic tms;
+    logic tck;
+    logic trst;
+    logic tdi;
+    logic tdo;
+
+    jtag_dpi #(
+        .TCP_PORT ( TCP_PORT       )
+    ) i_jtag_dpi (
+        .clk_i    ( clk_i          ),
+        .enable_i ( 1'b1           ),
+        .tms_o    ( tms            ),
+        .tck_o    ( tck            ),
+        .trst_o   ( trst           ),
+        .tdi_o    ( tdi            ),
+        .tdo_i    ( tdo            )
+    );
+
+    // ------------------
+    // DUT (Kerbin)
+    // ------------------
     // bind dut.uncore_i.coreplex_i.ariane_i dcache_if
     kerbin dut (
         .clk_i          ( clk_i          ),
@@ -50,7 +92,18 @@ module kerbin_tb;
         .clock_en_i     ( clock_en_i     ),
         .rst_ni         ( rst_ni         ),
         .test_en_i      ( 1'b0           ),
-        .fetch_enable_i ( fetch_enable_i )
+        .fetch_enable_i ( fetch_enable_i ),
+        .tck_i          ( tck            ),
+        .tms_i          ( tms            ),
+        .trstn_i        ( trst           ),
+        .tdi_i          ( tdi            ),
+        .tdo_o          ( tdo            ),
+        .rts_o          (                ),
+        .dtr_o          (                ),
+        .cts_i          (                ),
+        .dsr_i          (                ),
+        .rx_i           ( uart_tx        ),
+        .tx_o           ( uart_rx        )
     );
 
     // ------------------
@@ -91,6 +144,7 @@ module kerbin_tb;
         fetch_enable_i = 1'b1;
 
     end
+
     task preload_memories();
         string plus_args [$];
 
