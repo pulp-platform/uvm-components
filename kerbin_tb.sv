@@ -69,12 +69,13 @@ module kerbin_tb;
     logic trst;
     logic tdi;
     logic tdo;
+    logic jtag_enable;
 
     jtag_dpi #(
         .TCP_PORT ( TCP_PORT       )
     ) i_jtag_dpi (
         .clk_i    ( clk_i          ),
-        .enable_i ( 1'b1           ),
+        .enable_i ( jtag_enable    ),
         .tms_o    ( tms            ),
         .tck_o    ( tck            ),
         .trst_o   ( trst           ),
@@ -132,17 +133,18 @@ module kerbin_tb;
         end
     end
 
+    initial begin
+        jtag_enable = 1'b0;
+
+        #1000 jtag_enable = 1'b1;
+    end
     // ------------------
     // Fetch Enable
     // ------------------
     initial begin
-
         fetch_enable_i = 1'b0;
-        wait (20ns);
-        wait (rst_ni);
-        wait (200ns);
-        fetch_enable_i = 1'b1;
 
+        #500 fetch_enable_i = 1'b0;
     end
 
     task preload_memories();
@@ -169,7 +171,7 @@ module kerbin_tb;
         $readmemh({file, ".hex"}, rmem);
         // copy double-wordwise from verilog file
         for (int i = 0; i < 2**21; i++) begin
-            dut.uncore_i.sp_ram_i.mem[i] = rmem[i];
+            dut.sp_ram_i.mem[i] = rmem[i];
         end
 
     endtask : preload_memories
