@@ -43,7 +43,7 @@ module kerbin_tb;
 
     dcache_if dcache_if (clk_i);
 
-    localparam BAUDRATE = 781250; // 1562500
+    localparam BAUDRATE = 1562500; // 1562500
     localparam TCP_PORT = 4567;
 
     // ------------------
@@ -90,7 +90,6 @@ module kerbin_tb;
     kerbin dut (
         .clk_i          ( clk_i          ),
         .rtc_i          ( rtc_i          ),
-        .clock_en_i     ( clock_en_i     ),
         .rst_ni         ( rst_ni         ),
         .test_en_i      ( 1'b0           ),
         .fetch_enable_i ( fetch_enable_i ),
@@ -100,9 +99,7 @@ module kerbin_tb;
         .tdi_i          ( tdi            ),
         .tdo_o          ( tdo            ),
         .rts_o          (                ),
-        .dtr_o          (                ),
         .cts_i          (                ),
-        .dsr_i          (                ),
         .rx_i           ( uart_tx        ),
         .tx_o           ( uart_rx        )
     );
@@ -144,7 +141,7 @@ module kerbin_tb;
     initial begin
         fetch_enable_i = 1'b0;
 
-        #500 fetch_enable_i = 1'b0;
+        #500 fetch_enable_i = 1'b1;
     end
 
     task preload_memories();
