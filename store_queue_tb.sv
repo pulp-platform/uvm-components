@@ -38,6 +38,7 @@ module store_queue_tb;
         .page_offset_i         ( store_queue.page_offset                      ),
         .page_offset_matches_o ( store_queue.page_offset_matches              ),
         .commit_i              ( store_queue.commit                           ),
+        .commit_ready_o        ( store_queue.commit_ready                     ),
         .ready_o               ( store_queue.ready                            ),
         .valid_i               ( store_queue.store_valid && store_queue.ready ),
         .paddr_i               ( store_queue.store_paddr                      ),

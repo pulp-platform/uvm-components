@@ -33,6 +33,7 @@ interface store_queue_if
    wire [11:0]              page_offset;
    wire                     page_offset_matches;
    wire                     commit;
+   wire                     commit_ready;
    wire                     ready;
    wire                     store_valid;
    wire [ADDRESS_SIZE-1:0]  store_paddr;
@@ -41,13 +42,13 @@ interface store_queue_if
 
    clocking mck @(posedge clk);
         output flush, commit, store_valid, page_offset, store_paddr, store_data, store_be;
-        input  ready, page_offset_matches, no_st_pending;
+        input  ready, commit_ready, page_offset_matches, no_st_pending;
 
    endclocking
 
 
    clocking pck @(posedge clk);
-     input flush, commit, ready, page_offset, page_offset_matches, store_valid, store_paddr,
+     input flush, commit, ready, page_offset, page_offset_matches, store_valid, store_paddr, commit_ready,
             store_data, store_be, no_st_pending;
    endclocking
 
