@@ -43,7 +43,7 @@ module kerbin_tb;
 
     dcache_if dcache_if (clk_i);
 
-    localparam BAUDRATE = 1562500; // 1562500
+    localparam BAUDRATE = 115200; // 1562500
     localparam TCP_PORT = 4567;
 
     // ------------------
