@@ -48,7 +48,7 @@ module boot_rom #(
             64'h1018: data_o = 64'h0000000000000000;
             // device tree
             default: begin
-                data_o = fdt[fdt_address[63:3]];
+                data_o = 64'hx; //fdt[fdt_address[63:3]];
             end
         endcase
         // we immediately give a grant - it's a ROM, nothing indeterministic about it
