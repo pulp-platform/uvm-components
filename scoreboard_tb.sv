@@ -20,7 +20,8 @@ module scoreboard_tb;
 
     scoreboard #(
         .NR_WB_PORTS           ( 1                                 ),
-        .NR_ENTRIES            ( NR_SB_ENTRIES                     )
+        .NR_ENTRIES            ( NR_SB_ENTRIES                     ),
+        .NR_COMMIT_PORTS       ( 1                                 )
     )
     dut
     (
@@ -47,7 +48,7 @@ module scoreboard_tb;
         .issue_ack_i           ( scoreboard_if.issue_ack           ),
 
         .trans_id_i            ( scoreboard_if.trans_id            ),
-        .wdata_i               ( scoreboard_if.wdata               ),
+        .wbdata_i              ( scoreboard_if.wdata               ),
         .ex_i                  ( scoreboard_if.ex                  ),
         .wb_valid_i            ( scoreboard_if.wb_valid            )
     );

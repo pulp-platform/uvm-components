@@ -22,6 +22,8 @@ import ariane_pkg::*;
 import uvm_pkg::*;
 import core_lib_pkg::*;
 
+`timescale 1ns / 1ps
+
 `define DRAM_BASE 64'h80000000
 
 `include "uvm_macros.svh"
@@ -144,6 +146,7 @@ module core_tb;
         .clk_i                   ( clk_i                        ),
         .rst_ni                  ( rst_ni                       ),
         .time_i                  ( time_i                       ),
+        .time_irq_i              ( 1'b0                         ),
         .clock_en_i              ( core_if.clock_en             ),
         .test_en_i               ( core_if.test_en              ),
         .fetch_enable_i          ( core_if.fetch_enable         ),
@@ -151,8 +154,6 @@ module core_tb;
         .flush_icache_o          (                              ),
         .flush_dcache_o          ( flush_dcache                 ),
         .flush_dcache_ack_i      ( flush_dcache                 ),
-
-
         .ext_perf_counters_i     (                              ),
         .boot_addr_i             ( core_if.boot_addr            ),
         .core_id_i               ( core_if.core_id              ),

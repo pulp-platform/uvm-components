@@ -1,9 +1,10 @@
 add wave -noupdate -group core /core_tb/dut/*
 
-add wave -noupdate -group pcgen_stage -group btb /core_tb/dut/pcgen_i/btb_i/*
-add wave -noupdate -group pcgen_stage /core_tb/dut/pcgen_i/*
+add wave -noupdate -group pcgen_stage /core_tb/dut/pcgen_stage_i/*
+add wave -noupdate -group pcgen_stage -group btb /core_tb/dut/pcgen_stage_i/btb_i/*
 
-add wave -noupdate -group if_stage -group fetch_fifo /core_tb/dut/if_stage_i/fetch_fifo_i/*
+add wave -noupdate -group if_stage -group fetch_fifo /core_tb/dut/if_stage_i/i_fetch_fifo/*
+add wave -noupdate -group if_stage -group address_fifo /core_tb/dut/if_stage_i/i_fifo/*
 add wave -noupdate -group if_stage /core_tb/dut/if_stage_i/*
 
 add wave -noupdate -group id_stage -group decoder /core_tb/dut/id_stage_i/decoder_i/*
@@ -40,3 +41,5 @@ add wave -noupdate -group commit_stage /core_tb/dut/commit_stage_i/*
 add wave -noupdate -group csr_file /core_tb/dut/csr_regfile_i/*
 
 add wave -noupdate -group controller /core_tb/dut/controller_i/*
+
+add wave -noupdate -group debug /core_tb/dut/debug_unit_i/*
