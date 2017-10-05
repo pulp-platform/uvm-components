@@ -178,7 +178,6 @@ module core_tb;
         .data_if_data_rvalid_i   ( data_if_data_rvalid_o        ),
         .data_if_data_rdata_i    ( data_if_data_rdata_o         ),
 
-        .time_irq_i              ( 1'b0                         ),
         .irq_i                   ( core_if.irq                  ),
         .irq_id_i                ( core_if.irq_id               ),
         .irq_ack_o               ( core_if.irq_ack              ),
