@@ -138,6 +138,8 @@ module core_tb;
         .data_if_data_rdata_o    ( data_if_data_rdata_o         )
     );
 
+    logic flush_dcache;
+
     ariane dut (
         .clk_i                   ( clk_i                        ),
         .rst_ni                  ( rst_ni                       ),
@@ -147,6 +149,10 @@ module core_tb;
         .fetch_enable_i          ( core_if.fetch_enable         ),
         .core_busy_o             ( core_if.core_busy            ),
         .flush_icache_o          (                              ),
+        .flush_dcache_o          ( flush_dcache                 ),
+        .flush_dcache_ack_i      ( flush_dcache                 ),
+
+
         .ext_perf_counters_i     (                              ),
         .boot_addr_i             ( core_if.boot_addr            ),
         .core_id_i               ( core_if.core_id              ),
@@ -171,7 +177,8 @@ module core_tb;
         .data_if_data_rvalid_i   ( data_if_data_rvalid_o        ),
         .data_if_data_rdata_i    ( data_if_data_rdata_o         ),
 
-        .irq_i                   ( {core_if.irq, core_if.irq}   ),
+        .time_irq_i              ( 1'b0                         ),
+        .irq_i                   ( core_if.irq                  ),
         .irq_id_i                ( core_if.irq_id               ),
         .irq_ack_o               ( core_if.irq_ack              ),
         .irq_sec_i               ( core_if.irq_sec              ),
