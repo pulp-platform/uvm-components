@@ -86,21 +86,44 @@ module kerbin_tb;
     // ------------------
     // DUT (Kerbin)
     // ------------------
-    // bind dut.uncore_i.coreplex_i.ariane_i dcache_if
     kerbin dut (
-        .clk_i          ( clk_i          ),
-        .rtc_i          ( rtc_i          ),
-        .rst_ni         ( rst_ni         ),
-        .test_en_i      ( 1'b0           ),
-        .tck_i          ( tck            ),
-        .tms_i          ( tms            ),
-        .trstn_i        ( trst           ),
-        .tdi_i          ( tdi            ),
-        .tdo_o          ( tdo            ),
-        .rts_o          (                ),
-        .cts_i          (                ),
-        .rx_i           ( uart_tx        ),
-        .tx_o           ( uart_rx        )
+        .clk_i             ( clk_i          ),
+        .rtc_i             ( rtc_i          ),
+        .rst_ni            ( rst_ni         ),
+        .test_en_i         ( 1'b0           ),
+        .tck_i             ( tck            ),
+        .tms_i             ( tms            ),
+        .trstn_i           ( trst           ),
+        .tdi_i             ( tdi            ),
+        .tdo_o             ( tdo            ),
+        .rts_o             (                ),
+        .cts_i             (                ),
+        .rx_i              ( uart_tx        ),
+        .tx_o              ( uart_rx        ),
+        .spi_clk           (                ),
+        .spi_csn0          (                ),
+        .spi_csn1          (                ),
+        .spi_csn2          (                ),
+        .spi_csn3          (                ),
+        .spi_mode          (                ),
+        .spi_sdo0          (                ),
+        .spi_sdo1          (                ),
+        .spi_sdo2          (                ),
+        .spi_sdo3          (                ),
+        .spi_sdi0          (                ),
+        .spi_sdi1          (                ),
+        .spi_sdi2          (                ),
+        .spi_sdi3          (                ),
+        .hyper_clk_o       (                ),
+        .hyper_clk_no      (                ),
+        .hyper_cs0_no      (                ),
+        .hyper_cs1_no      (                ),
+        .hyper_rwds_o      (                ),
+        .hyper_rwds_oe_no  (                ),
+        .hyper_rwds_i      (                ),
+        .hyper_dq_oe_no    (                ),
+        .hyper_dq_o        (                ),
+        .hyper_dq_i        (                )
     );
 
     // ------------------
