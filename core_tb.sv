@@ -147,7 +147,6 @@ module core_tb;
         .rst_ni                  ( rst_ni                       ),
         .time_i                  ( time_i                       ),
         .time_irq_i              ( 1'b0                         ),
-        .clock_en_i              ( core_if.clock_en             ),
         .test_en_i               ( core_if.test_en              ),
         .fetch_enable_i          ( core_if.fetch_enable         ),
         .core_busy_o             ( core_if.core_busy            ),
