@@ -142,6 +142,13 @@ module core_tb;
 
     logic flush_dcache;
 
+    AXI_BUS #(
+        .AXI_ADDR_WIDTH ( 64 ),
+        .AXI_DATA_WIDTH ( 64 ),
+        .AXI_ID_WIDTH   ( 10 ),
+        .AXI_USER_WIDTH ( 1  )
+    ) data_if();
+
     ariane dut (
         .clk_i                   ( clk_i                        ),
         .rst_ni                  ( rst_ni                       ),
@@ -165,17 +172,7 @@ module core_tb;
         .instr_if_data_rvalid_i  ( instr_if_data_rvalid         ),
         .instr_if_data_rdata_i   ( instr_if_data_rdata          ),
 
-        .data_if_address_index_o ( data_if_address_index_i      ),
-        .data_if_address_tag_o   ( data_if_address_tag_i        ),
-        .data_if_data_wdata_o    ( data_if_data_wdata_i         ),
-        .data_if_data_req_o      ( data_if_data_req_i           ),
-        .data_if_data_we_o       ( data_if_data_we_i            ),
-        .data_if_data_be_o       ( data_if_data_be_i            ),
-        .data_if_kill_req_o      ( data_if_kill_req_i           ),
-        .data_if_tag_valid_o     ( data_if_tag_valid_i          ),
-        .data_if_data_gnt_i      ( data_if_data_gnt_o           ),
-        .data_if_data_rvalid_i   ( data_if_data_rvalid_o        ),
-        .data_if_data_rdata_i    ( data_if_data_rdata_o         ),
+        .data_if                 ( data_if                      ),
 
         .irq_i                   ( core_if.irq                  ),
         .irq_id_i                ( core_if.irq_id               ),
