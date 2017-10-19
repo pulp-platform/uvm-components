@@ -43,3 +43,14 @@ add wave -noupdate -group csr_file /core_tb/dut/csr_regfile_i/*
 add wave -noupdate -group controller /core_tb/dut/controller_i/*
 
 add wave -noupdate -group debug /core_tb/dut/debug_unit_i/*
+
+add wave -noupdate -group nbdcache /core_tb/dut/ex_stage_i/lsu_i/i_nbdcache/*
+add wave -noupdate -group nbdcache -group miss_handler /core_tb/dut/ex_stage_i/lsu_i/i_nbdcache/i_miss_handler/*
+
+add wave -noupdate -group nbdcache -group bypass_arbiter core_tb/dut/ex_stage_i/lsu_i/i_nbdcache/i_miss_handler/i_bypass_arbiter/*
+add wave -noupdate -group nbdcache -group bypass_axi core_tb/dut/ex_stage_i/lsu_i/i_nbdcache/i_miss_handler/i_bypass_axi_adapter/*
+
+
+add wave -noupdate -group nbdcache -group ptw {/core_tb/dut/ex_stage_i/lsu_i/i_nbdcache/master_ports[0]/i_cache_ctrl/*}
+add wave -noupdate -group nbdcache -group load {/core_tb/dut/ex_stage_i/lsu_i/i_nbdcache/master_ports[1]/i_cache_ctrl/*}
+add wave -noupdate -group nbdcache -group store {/core_tb/dut/ex_stage_i/lsu_i/i_nbdcache/master_ports[2]/i_cache_ctrl/*}
