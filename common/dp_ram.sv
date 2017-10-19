@@ -52,8 +52,9 @@ module dp_ram
                     mem[addr_b_i][i] <= wdata_b_i[i*8 +: 8];
             end
         end
+
+        rdata_b_o <= mem[addr_b_i];
+
     end
-    // output port 2: combinatorially since we need to mimic a cache interface
-    assign rdata_b_o = mem[addr_b_i];
 
 endmodule
