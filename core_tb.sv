@@ -66,53 +66,6 @@ module core_tb;
     logic        data_if_data_rvalid_o;
     logic [63:0] data_if_data_rdata_o;
 
-    // connect D$ interface
-    // assign dcache_if.address_index = data_if_address_index_i;
-    // assign dcache_if.address_tag   = data_if_address_tag_i;
-    // assign dcache_if.data_wdata    = data_if_data_wdata_i;
-    // assign dcache_if.data_req      = data_if_data_req_i;
-    // assign dcache_if.data_we       = data_if_data_we_i;
-    // assign dcache_if.data_be       = data_if_data_be_i;
-    // assign dcache_if.kill_req      = data_if_kill_req_i;
-    // assign dcache_if.tag_valid     = data_if_tag_valid_i;
-    // assign dcache_if.data_gnt      = data_if_data_gnt_o;
-    // assign dcache_if.data_rvalid   = data_if_data_rvalid_o;
-    // assign dcache_if.data_rdata    = data_if_data_rdata_o;
-
-    random_stalls instr_stalls_i (
-        .clk_i                   ( clk_i                        ),
-        .core_req_i              ( dut.instr_if_data_req_o      ),
-        .core_addr_i             ( dut.instr_if_address_o       ),
-        .core_we_i               (                              ),
-        .core_be_i               (                              ),
-        .core_wdata_i            (                              ),
-        .core_gnt_o              (                              ),
-        .core_rdata_o            (                              ),
-        .core_rvalid_o           (                              ),
-
-        .data_req_o              (                              ),
-        .data_addr_o             (                              ),
-        .data_we_o               (                              ),
-        .data_be_o               (                              ),
-        .data_wdata_o            (                              ),
-        .data_gnt_i              ( instr_if_data_gnt            ),
-        .data_rdata_i            ( instr_if_data_rdata          ),
-        .data_rvalid_i           ( instr_if_data_rvalid         )
-    );
-
-    initial begin
-        string rand_mem;
-        // if the randomize memory interface is set to 1 do so
-        if(uvcl.get_arg_value("+rand_mem_if", rand_mem) != 0) begin
-           force dut.instr_if_data_gnt_i    = instr_stalls_i.core_gnt_o;
-           force dut.instr_if_data_rvalid_i = instr_stalls_i.core_rvalid_o;
-           force dut.instr_if_data_rdata_i  = instr_stalls_i.core_rdata_o;
-
-           force instr_if_data_req = instr_stalls_i.data_req_o;
-           force instr_if_address  = instr_stalls_i.data_addr_o;
-        end
-     end
-
     core_mem core_mem_i (
         .clk_i                   ( clk_i                        ),
         .rst_ni                  ( rst_ni                       ),

@@ -63,7 +63,7 @@ class scoreboard_if_seq_item extends uvm_sequence_item;
 
       $sformat(s, "%s\n", super.convert2string());
       // Convert to string function reusing s:
-      $sformat(s, "%s Scoreboard: %0h Operation: %s", s, instruction_type.name);
+      $sformat(s, "%s Operation: %s", s, instruction_type.name);
       return s;
 
     endfunction:convert2string
