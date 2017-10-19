@@ -53,35 +53,31 @@ module core_tb;
 
     logic [63:0] instr_if_address;
     logic        instr_if_data_req;
-    logic [3:0]  instr_if_data_be;
     logic        instr_if_data_gnt;
     logic        instr_if_data_rvalid;
     logic [63:0] instr_if_data_rdata;
 
-    logic [11:0] data_if_address_index_i;
-    logic [43:0] data_if_address_tag_i;
+    logic [63:0] data_if_data_address_i;
     logic [63:0] data_if_data_wdata_i;
     logic        data_if_data_req_i;
     logic        data_if_data_we_i;
     logic [7:0]  data_if_data_be_i;
-    logic        data_if_kill_req_i;
-    logic        data_if_tag_valid_i;
     logic        data_if_data_gnt_o;
     logic        data_if_data_rvalid_o;
     logic [63:0] data_if_data_rdata_o;
 
     // connect D$ interface
-    assign dcache_if.address_index = data_if_address_index_i;
-    assign dcache_if.address_tag   = data_if_address_tag_i;
-    assign dcache_if.data_wdata    = data_if_data_wdata_i;
-    assign dcache_if.data_req      = data_if_data_req_i;
-    assign dcache_if.data_we       = data_if_data_we_i;
-    assign dcache_if.data_be       = data_if_data_be_i;
-    assign dcache_if.kill_req      = data_if_kill_req_i;
-    assign dcache_if.tag_valid     = data_if_tag_valid_i;
-    assign dcache_if.data_gnt      = data_if_data_gnt_o;
-    assign dcache_if.data_rvalid   = data_if_data_rvalid_o;
-    assign dcache_if.data_rdata    = data_if_data_rdata_o;
+    // assign dcache_if.address_index = data_if_address_index_i;
+    // assign dcache_if.address_tag   = data_if_address_tag_i;
+    // assign dcache_if.data_wdata    = data_if_data_wdata_i;
+    // assign dcache_if.data_req      = data_if_data_req_i;
+    // assign dcache_if.data_we       = data_if_data_we_i;
+    // assign dcache_if.data_be       = data_if_data_be_i;
+    // assign dcache_if.kill_req      = data_if_kill_req_i;
+    // assign dcache_if.tag_valid     = data_if_tag_valid_i;
+    // assign dcache_if.data_gnt      = data_if_data_gnt_o;
+    // assign dcache_if.data_rvalid   = data_if_data_rvalid_o;
+    // assign dcache_if.data_rdata    = data_if_data_rdata_o;
 
     random_stalls instr_stalls_i (
         .clk_i                   ( clk_i                        ),
@@ -122,19 +118,15 @@ module core_tb;
         .rst_ni                  ( rst_ni                       ),
         .instr_if_address_i      ( instr_if_address             ),
         .instr_if_data_req_i     ( instr_if_data_req            ),
-        .instr_if_data_be_i      ( instr_if_data_be             ),
         .instr_if_data_gnt_o     ( instr_if_data_gnt            ),
         .instr_if_data_rvalid_o  ( instr_if_data_rvalid         ),
         .instr_if_data_rdata_o   ( instr_if_data_rdata          ),
 
-        .data_if_address_index_i ( data_if_address_index_i      ),
-        .data_if_address_tag_i   ( data_if_address_tag_i        ),
+        .data_if_address_i       ( data_if_data_address_i       ),
         .data_if_data_wdata_i    ( data_if_data_wdata_i         ),
         .data_if_data_req_i      ( data_if_data_req_i           ),
         .data_if_data_we_i       ( data_if_data_we_i            ),
         .data_if_data_be_i       ( data_if_data_be_i            ),
-        .data_if_kill_req_i      ( data_if_kill_req_i           ),
-        .data_if_tag_valid_i     ( data_if_tag_valid_i          ),
         .data_if_data_gnt_o      ( data_if_data_gnt_o           ),
         .data_if_data_rvalid_o   ( data_if_data_rvalid_o        ),
         .data_if_data_rdata_o    ( data_if_data_rdata_o         )
@@ -148,6 +140,82 @@ module core_tb;
         .AXI_ID_WIDTH   ( 10 ),
         .AXI_USER_WIDTH ( 1  )
     ) data_if();
+
+    AXI_BUS #(
+        .AXI_ADDR_WIDTH ( 64 ),
+        .AXI_DATA_WIDTH ( 64 ),
+        .AXI_ID_WIDTH   ( 10 ),
+        .AXI_USER_WIDTH ( 1  )
+    ) bypass_if();
+
+    axi2per #(
+        .PER_ADDR_WIDTH(64),
+        .PER_DATA_WIDTH(64),
+        .PER_ID_WIDTH  (10),
+        .AXI_ADDR_WIDTH(64),
+        .AXI_DATA_WIDTH(64),
+        .AXI_USER_WIDTH(1),
+        .AXI_ID_WIDTH  (10),
+        .BUFFER_DEPTH  (2)
+    ) i_axi2per (
+        .clk_i                 ( clk_i                   ),
+        .rst_ni                ( rst_ni                  ),
+        .test_en_i             ( 1'b0                    ),
+        .axi_slave_aw_valid_i  ( bypass_if.aw_valid      ),
+        .axi_slave_aw_addr_i   ( bypass_if.aw_addr       ),
+        .axi_slave_aw_prot_i   ( bypass_if.aw_prot       ),
+        .axi_slave_aw_region_i ( bypass_if.aw_region     ),
+        .axi_slave_aw_len_i    ( bypass_if.aw_len        ),
+        .axi_slave_aw_size_i   ( bypass_if.aw_size       ),
+        .axi_slave_aw_burst_i  ( bypass_if.aw_burst      ),
+        .axi_slave_aw_lock_i   ( bypass_if.aw_lock       ),
+        .axi_slave_aw_cache_i  ( bypass_if.aw_cache      ),
+        .axi_slave_aw_qos_i    ( bypass_if.aw_qos        ),
+        .axi_slave_aw_id_i     ( bypass_if.aw_id         ),
+        .axi_slave_aw_user_i   ( bypass_if.aw_user       ),
+        .axi_slave_aw_ready_o  ( bypass_if.aw_ready      ),
+        .axi_slave_ar_valid_i  ( bypass_if.ar_valid      ),
+        .axi_slave_ar_addr_i   ( bypass_if.ar_addr       ),
+        .axi_slave_ar_prot_i   ( bypass_if.ar_prot       ),
+        .axi_slave_ar_region_i ( bypass_if.ar_region     ),
+        .axi_slave_ar_len_i    ( bypass_if.ar_len        ),
+        .axi_slave_ar_size_i   ( bypass_if.ar_size       ),
+        .axi_slave_ar_burst_i  ( bypass_if.ar_burst      ),
+        .axi_slave_ar_lock_i   ( bypass_if.ar_lock       ),
+        .axi_slave_ar_cache_i  ( bypass_if.ar_cache      ),
+        .axi_slave_ar_qos_i    ( bypass_if.ar_qos        ),
+        .axi_slave_ar_id_i     ( bypass_if.ar_id         ),
+        .axi_slave_ar_user_i   ( bypass_if.ar_user       ),
+        .axi_slave_ar_ready_o  ( bypass_if.ar_ready      ),
+        .axi_slave_w_valid_i   ( bypass_if.w_valid       ),
+        .axi_slave_w_data_i    ( bypass_if.w_data        ),
+        .axi_slave_w_strb_i    ( bypass_if.w_strb        ),
+        .axi_slave_w_user_i    ( bypass_if.w_user        ),
+        .axi_slave_w_last_i    ( bypass_if.w_last        ),
+        .axi_slave_w_ready_o   ( bypass_if.w_ready       ),
+        .axi_slave_r_valid_o   ( bypass_if.r_valid       ),
+        .axi_slave_r_data_o    ( bypass_if.r_data        ),
+        .axi_slave_r_resp_o    ( bypass_if.r_resp        ),
+        .axi_slave_r_last_o    ( bypass_if.r_last        ),
+        .axi_slave_r_id_o      ( bypass_if.r_id          ),
+        .axi_slave_r_user_o    ( bypass_if.r_user        ),
+        .axi_slave_r_ready_i   ( bypass_if.r_ready       ),
+        .axi_slave_b_valid_o   ( bypass_if.b_valid       ),
+        .axi_slave_b_resp_o    ( bypass_if.b_resp        ),
+        .axi_slave_b_id_o      ( bypass_if.b_id          ),
+        .axi_slave_b_user_o    ( bypass_if.b_user        ),
+        .axi_slave_b_ready_i   ( bypass_if.b_ready       ),
+        .per_master_req_o      ( data_if_data_req_i      ),
+        .per_master_add_o      ( data_if_data_address_i  ),
+        .per_master_we_no      ( data_if_data_we_i       ),
+        .per_master_wdata_o    ( data_if_data_wdata_i    ),
+        .per_master_be_o       ( data_if_data_be_i       ),
+        .per_master_gnt_i      ( data_if_data_gnt_o      ),
+        .per_master_r_valid_i  ( data_if_data_rvalid_o   ),
+        .per_master_r_opc_i    ( '0                      ),
+        .per_master_r_rdata_i  ( data_if_data_rdata_o    ),
+        .busy_o                ( busy_o                  )
+    );
 
     ariane dut (
         .clk_i                   ( clk_i                        ),
@@ -173,6 +241,7 @@ module core_tb;
         .instr_if_data_rdata_i   ( instr_if_data_rdata          ),
 
         .data_if                 ( data_if                      ),
+        .bypass_if               ( bypass_if                    ),
 
         .irq_i                   ( core_if.irq                  ),
         .irq_id_i                ( core_if.irq_id               ),
