@@ -66,7 +66,7 @@ module core_mem (
         .addr_b_i      ( data_if_address_i[ADDRESS_WIDTH-1+3:3]             ),
         .wdata_b_i     ( data_if_data_wdata_i                               ),
         .rdata_b_o     ( data_ram                                           ),
-        .we_b_i        ( (data_if_address_i[28] ? data_if_data_we_i : 1'b0) ),
+        .we_b_i        ( (data_if_address_i[31] ? data_if_data_we_i : 1'b0) ),
         .be_b_i        ( data_if_data_be_i                                  )
     );
 
