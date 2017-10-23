@@ -78,7 +78,7 @@ module core_tb;
         .data_if_address_i       ( data_if_data_address_i       ),
         .data_if_data_wdata_i    ( data_if_data_wdata_i         ),
         .data_if_data_req_i      ( data_if_data_req_i           ),
-        .data_if_data_we_i       ( data_if_data_we_i            ),
+        .data_if_data_we_i       ( ~data_if_data_we_i           ),
         .data_if_data_be_i       ( data_if_data_be_i            ),
         .data_if_data_gnt_o      ( data_if_data_gnt_o           ),
         .data_if_data_rvalid_o   ( data_if_data_rvalid_o        ),
