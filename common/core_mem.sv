@@ -48,7 +48,7 @@ module core_mem (
 
     // look at the address of the previous cycle to determine what to return
     assign instr_if_data_rdata_o = instr_address_q[31] ? fetch_data_ram : fetch_data_rom;
-    assign data_if_data_rdata_o = data_address_q[28] ? data_ram : data_rom;
+    assign data_if_data_rdata_o = data_address_q[31] ? data_ram : data_rom;
 
     dp_ram  #(
         .ADDR_WIDTH    ( ADDRESS_WIDTH                                      ),
@@ -63,7 +63,7 @@ module core_mem (
         .be_a_i        (                                                    ),
         // data RAM
         .en_b_i        ( data_if_data_req_i                                 ),
-        .addr_b_i      ( data_if_address_i[ADDRESS_WIDTH-1:0]               ),
+        .addr_b_i      ( data_if_address_i[ADDRESS_WIDTH-1+3:3]             ),
         .wdata_b_i     ( data_if_data_wdata_i                               ),
         .rdata_b_o     ( data_ram                                           ),
         .we_b_i        ( (data_if_address_i[28] ? data_if_data_we_i : 1'b0) ),

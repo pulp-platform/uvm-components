@@ -214,6 +214,19 @@ module core_tb;
         .debug_resume_i          (                              )
     );
 
+    // connect core store interface
+    assign dcache_if.address_index = dut.ex_stage_i.lsu_i.i_store_unit.address_index_o;
+    assign dcache_if.address_tag   = dut.ex_stage_i.lsu_i.i_store_unit.address_tag_o;
+    assign dcache_if.data_wdata    = dut.ex_stage_i.lsu_i.i_store_unit.data_wdata_o;
+    assign dcache_if.data_req      = dut.ex_stage_i.lsu_i.i_store_unit.data_req_o;
+    assign dcache_if.data_we       = dut.ex_stage_i.lsu_i.i_store_unit.data_we_o;
+    assign dcache_if.data_be       = dut.ex_stage_i.lsu_i.i_store_unit.data_be_o;
+    assign dcache_if.kill_req      = dut.ex_stage_i.lsu_i.i_store_unit.kill_req_o;
+    assign dcache_if.tag_valid     = dut.ex_stage_i.lsu_i.i_store_unit.tag_valid_o;
+    assign dcache_if.data_gnt      = dut.ex_stage_i.lsu_i.i_store_unit.data_gnt_i;
+    assign dcache_if.data_rvalid   = dut.ex_stage_i.lsu_i.i_store_unit.data_rvalid_i;
+    assign dcache_if.data_rdata    = '0;
+
     // Clock process
     initial begin
         clk_i = 1'b0;
