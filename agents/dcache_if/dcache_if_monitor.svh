@@ -110,7 +110,7 @@ class dcache_if_monitor extends uvm_component;
                     cmd.be    = be.pop_front();
                     cmd.wdata = wdata.pop_front();
                     // was this from a master or slave agent monitor?
-                    cmd.isSlaveAnswer = (m_cfg.dcache_if_config inside {SLAVE, SLAVE_REPLAY, SLAVE_NO_RANDOM}) ? 1'b1 : 1'b0;
+                    cmd.isSlaveAnswer = (m_cfg.dcache_if_config inside {SLAVE, SLAVE_REPLAY, SLAVE_NO_RANDOM_DCACHE}) ? 1'b1 : 1'b0;
                     $cast(cloned_item, cmd.clone());
                     m_ap.write(cloned_item);
                 end

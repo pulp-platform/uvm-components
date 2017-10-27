@@ -35,7 +35,7 @@ class core_eoc extends uvm_scoreboard;
     // Methods
     //------------------------------------------
     // analysis port
-    uvm_analysis_imp #(dcache_if_seq_item, core_eoc) item_export;
+    uvm_analysis_imp #(mem_if_seq_item, core_eoc) item_export;
     // Standard UVM Methods:
     function new(string name = "core_eoc", uvm_component parent = null);
         super.new(name, parent);
@@ -67,11 +67,10 @@ class core_eoc extends uvm_scoreboard;
         item_export  = new("item_export", this);
     endfunction
 
-    function void write (dcache_if_seq_item seq_item);
-
+    function void write (mem_if_seq_item seq_item);
         // get the tohost value -> for details see the riscv-fesvr implementation
         if (seq_item.address == tohost) begin
-            exit_code = seq_item.wdata >> 1;
+            exit_code = seq_item.data >> 1;
             if (exit_code)
                 `uvm_error( "Core Test",  $sformatf("*** FAILED *** (tohost = %0d)", exit_code) )
             else
@@ -84,7 +83,7 @@ class core_eoc extends uvm_scoreboard;
         // UART Hack
         if (seq_item.address == 'h3000000) begin
             // $display("%c", seq_item.wdata);
-            sb.append(seq_item.wdata[7:0]);
+            sb.append(seq_item.data[7:0]);
         end
 
     endfunction

@@ -43,14 +43,14 @@ class dcache_if_driver extends uvm_driver #(dcache_if_seq_item);
         // Slave Port
         // --------------
         // this driver is configured as a SLAVE
-        if (m_cfg.dcache_if_config inside {SLAVE, SLAVE_REPLAY, SLAVE_NO_RANDOM}) begin
+        if (m_cfg.dcache_if_config inside {SLAVE, SLAVE_REPLAY, SLAVE_NO_RANDOM_DCACHE}) begin
             // grant process is combinatorial
             fork
                 slave_gnt: begin
                     m_vif.mck.data_gnt <= 1'b1;
                     // we don't to give random grants
                     // instead we always grant immediately
-                    if (m_cfg.dcache_if_config != SLAVE_NO_RANDOM) begin
+                    if (m_cfg.dcache_if_config != SLAVE_NO_RANDOM_DCACHE) begin
                         forever begin
                             // randomize grant delay - the grant may come in the same clock cycle
                             repeat ($urandom_range(0,3)) @(m_vif.mck);

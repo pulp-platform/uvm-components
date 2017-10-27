@@ -20,7 +20,7 @@ package dcache_if_agent_pkg;
     // 3. as a slave with no grant randomization
     // 4. replay data
     typedef enum {
-        SLAVE, SLAVE_REPLAY, SLAVE_NO_RANDOM, MASTER
+        SLAVE, SLAVE_REPLAY, SLAVE_NO_RANDOM_DCACHE, MASTER
     } dcache_if_config_t;
 
     // Mode of request either read or write
