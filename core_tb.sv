@@ -50,6 +50,7 @@ module core_tb;
     debug_if debug_if();
     core_if core_if (clk_i);
     dcache_if dcache_if (clk_i);
+    mem_if store_unit (clk_i);
 
     logic [63:0] instr_if_address;
     logic        instr_if_data_req;
@@ -106,74 +107,26 @@ module core_tb;
         .AXI_USER_WIDTH ( 1  )
     ) axi2per();
 
-    axi2per #(
-        .PER_ADDR_WIDTH(64),
-        .PER_DATA_WIDTH(64),
-        .PER_ID_WIDTH  (10),
-        .AXI_ADDR_WIDTH(64),
-        .AXI_DATA_WIDTH(64),
-        .AXI_USER_WIDTH(1),
-        .AXI_ID_WIDTH  (11),
-        .BUFFER_DEPTH  (2)
-    ) i_axi2per (
-        .clk_i                 ( clk_i                   ),
-        .rst_ni                ( rst_ni                  ),
-        .test_en_i             ( 1'b0                    ),
-        .axi_slave_aw_valid_i  ( axi2per.aw_valid        ),
-        .axi_slave_aw_addr_i   ( axi2per.aw_addr         ),
-        .axi_slave_aw_prot_i   ( axi2per.aw_prot         ),
-        .axi_slave_aw_region_i ( axi2per.aw_region       ),
-        .axi_slave_aw_len_i    ( axi2per.aw_len          ),
-        .axi_slave_aw_size_i   ( axi2per.aw_size         ),
-        .axi_slave_aw_burst_i  ( axi2per.aw_burst        ),
-        .axi_slave_aw_lock_i   ( axi2per.aw_lock         ),
-        .axi_slave_aw_cache_i  ( axi2per.aw_cache        ),
-        .axi_slave_aw_qos_i    ( axi2per.aw_qos          ),
-        .axi_slave_aw_id_i     ( axi2per.aw_id           ),
-        .axi_slave_aw_user_i   ( axi2per.aw_user         ),
-        .axi_slave_aw_ready_o  ( axi2per.aw_ready        ),
-        .axi_slave_ar_valid_i  ( axi2per.ar_valid        ),
-        .axi_slave_ar_addr_i   ( axi2per.ar_addr         ),
-        .axi_slave_ar_prot_i   ( axi2per.ar_prot         ),
-        .axi_slave_ar_region_i ( axi2per.ar_region       ),
-        .axi_slave_ar_len_i    ( axi2per.ar_len          ),
-        .axi_slave_ar_size_i   ( axi2per.ar_size         ),
-        .axi_slave_ar_burst_i  ( axi2per.ar_burst        ),
-        .axi_slave_ar_lock_i   ( axi2per.ar_lock         ),
-        .axi_slave_ar_cache_i  ( axi2per.ar_cache        ),
-        .axi_slave_ar_qos_i    ( axi2per.ar_qos          ),
-        .axi_slave_ar_id_i     ( axi2per.ar_id           ),
-        .axi_slave_ar_user_i   ( axi2per.ar_user         ),
-        .axi_slave_ar_ready_o  ( axi2per.ar_ready        ),
-        .axi_slave_w_valid_i   ( axi2per.w_valid         ),
-        .axi_slave_w_data_i    ( axi2per.w_data          ),
-        .axi_slave_w_strb_i    ( axi2per.w_strb          ),
-        .axi_slave_w_user_i    ( axi2per.w_user          ),
-        .axi_slave_w_last_i    ( axi2per.w_last          ),
-        .axi_slave_w_ready_o   ( axi2per.w_ready         ),
-        .axi_slave_r_valid_o   ( axi2per.r_valid         ),
-        .axi_slave_r_data_o    ( axi2per.r_data          ),
-        .axi_slave_r_resp_o    ( axi2per.r_resp          ),
-        .axi_slave_r_last_o    ( axi2per.r_last          ),
-        .axi_slave_r_id_o      ( axi2per.r_id            ),
-        .axi_slave_r_user_o    ( axi2per.r_user          ),
-        .axi_slave_r_ready_i   ( axi2per.r_ready         ),
-        .axi_slave_b_valid_o   ( axi2per.b_valid         ),
-        .axi_slave_b_resp_o    ( axi2per.b_resp          ),
-        .axi_slave_b_id_o      ( axi2per.b_id            ),
-        .axi_slave_b_user_o    ( axi2per.b_user          ),
-        .axi_slave_b_ready_i   ( axi2per.b_ready         ),
-        .per_master_req_o      ( data_if_data_req_i      ),
-        .per_master_add_o      ( data_if_data_address_i  ),
-        .per_master_we_no      ( data_if_data_we_i       ),
-        .per_master_wdata_o    ( data_if_data_wdata_i    ),
-        .per_master_be_o       ( data_if_data_be_i       ),
-        .per_master_gnt_i      ( data_if_data_gnt_o      ),
-        .per_master_r_valid_i  ( data_if_data_rvalid_o   ),
-        .per_master_r_opc_i    ( '0                      ),
-        .per_master_r_rdata_i  ( data_if_data_rdata_o    ),
-        .busy_o                ( busy_o                  )
+
+    axi_mem_if_wrap #(
+        .AXI4_ADDRESS_WIDTH(64),
+        .AXI4_RDATA_WIDTH  (64),
+        .AXI4_WDATA_WIDTH  (64),
+        .AXI4_ID_WIDTH     (11),
+        .AXI4_USER_WIDTH   (1)
+    ) i_axi_mem_if_wrap (
+        .clk_i     ( clk_i                  ),
+        .rst_ni    ( rst_ni                 ),
+        .test_en_i ( 1'b0                   ),
+        .slave     ( axi2per                ),
+        .CEN       ( data_if_data_req_i     ),
+        .WEN       ( data_if_data_we_i      ),
+        .A         ( data_if_data_address_i ),
+        .D         ( data_if_data_wdata_i   ),
+        .BE        ( data_if_data_be_i      ),
+        .Q         ( data_if_data_rdata_o   )
     );
+
 
     axi_node_intf_wrap #(
         .NB_MASTER      ( 1            ),
@@ -235,17 +188,14 @@ module core_tb;
     );
 
     // connect core store interface
-    assign dcache_if.address_index = dut.ex_stage_i.lsu_i.i_store_unit.address_index_o;
-    assign dcache_if.address_tag   = dut.ex_stage_i.lsu_i.i_store_unit.address_tag_o;
-    assign dcache_if.data_wdata    = dut.ex_stage_i.lsu_i.i_store_unit.data_wdata_o;
-    assign dcache_if.data_req      = dut.ex_stage_i.lsu_i.i_store_unit.data_req_o;
-    assign dcache_if.data_we       = dut.ex_stage_i.lsu_i.i_store_unit.data_we_o;
-    assign dcache_if.data_be       = dut.ex_stage_i.lsu_i.i_store_unit.data_be_o;
-    assign dcache_if.kill_req      = dut.ex_stage_i.lsu_i.i_store_unit.kill_req_o;
-    assign dcache_if.tag_valid     = dut.ex_stage_i.lsu_i.i_store_unit.tag_valid_o;
-    assign dcache_if.data_gnt      = dut.ex_stage_i.lsu_i.i_store_unit.data_gnt_i;
-    assign dcache_if.data_rvalid   = dut.ex_stage_i.lsu_i.i_store_unit.data_rvalid_i;
-    assign dcache_if.data_rdata    = '0;
+    assign store_unit.address = {dut.ex_stage_i.lsu_i.i_store_unit.address_tag_o, dut.ex_stage_i.lsu_i.i_store_unit.address_index_o};
+    assign store_unit.data_wdata    = dut.ex_stage_i.lsu_i.i_store_unit.data_wdata_o;
+    assign store_unit.data_req      = dut.ex_stage_i.lsu_i.i_store_unit.data_req_o;
+    assign store_unit.data_we       = dut.ex_stage_i.lsu_i.i_store_unit.data_we_o;
+    assign store_unit.data_be       = dut.ex_stage_i.lsu_i.i_store_unit.data_be_o;
+    assign store_unit.data_gnt      = dut.ex_stage_i.lsu_i.i_store_unit.data_gnt_i;
+    assign store_unit.data_rvalid   = dut.ex_stage_i.lsu_i.i_store_unit.data_rvalid_i;
+    assign store_unit.data_rdata    = '0;
 
     // Clock process
     initial begin
@@ -305,7 +255,7 @@ module core_tb;
 
     endtask : preload_memories
 
-    program testbench (core_if core_if, dcache_if dcache_if);
+    program testbench (core_if core_if, dcache_if dcache_if, mem_if mem_if);
         longint unsigned begin_signature_address;
         longint unsigned tohost_address;
         string max_cycle_string;
@@ -314,6 +264,7 @@ module core_tb;
 
             uvm_config_db #(virtual core_if)::set(null, "uvm_test_top", "core_if", core_if);
             uvm_config_db #(virtual dcache_if )::set(null, "uvm_test_top", "dcache_if", dcache_if);
+            uvm_config_db #(virtual mem_if )::set(null, "uvm_test_top", "mem_if", mem_if);
 
             // we are interested in the .tohost ELF symbol in-order to observe end of test signals
             tohost_address = get_symbol_address("tohost");
@@ -335,5 +286,5 @@ module core_tb;
         end
     endprogram
 
-    testbench tb(core_if, dcache_if);
+    testbench tb(core_if, dcache_if, store_unit);
 endmodule

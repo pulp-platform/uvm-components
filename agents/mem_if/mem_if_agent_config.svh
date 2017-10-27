@@ -25,6 +25,8 @@ class mem_if_agent_config extends uvm_object;
     virtual mem_if fu;
     // Is this a master or a slave interface
     mem_if_config mem_if_config;
+    // is this a store only interface (e.g.: no rvalid)?
+    logic store_if;
     // configure the path to the memory file from which to serve all read requests
     string mem_file;
     // Is the agent active or passive

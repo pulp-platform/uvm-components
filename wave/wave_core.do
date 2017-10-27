@@ -54,6 +54,7 @@ add wave -noupdate -group nbdcache -group miss_axi core_tb/dut/ex_stage_i/lsu_i/
 add wave -noupdate -group nbdcache -group lfsr core_tb/dut/ex_stage_i/lsu_i/i_nbdcache/i_miss_handler/i_lfsr/*
 
 add wave -noupdate -group nbdcache -group dirty_ram core_tb/dut/ex_stage_i/lsu_i/i_nbdcache/dirty_sram/*
+add wave -noupdate -group nbdcache -group tag_cmp core_tb/dut/ex_stage_i/lsu_i/i_nbdcache/i_tag_cmp/*
 
 add wave -noupdate -group nbdcache -group ptw {/core_tb/dut/ex_stage_i/lsu_i/i_nbdcache/master_ports[0]/i_cache_ctrl/*}
 add wave -noupdate -group nbdcache -group load {/core_tb/dut/ex_stage_i/lsu_i/i_nbdcache/master_ports[1]/i_cache_ctrl/*}
