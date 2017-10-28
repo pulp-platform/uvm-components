@@ -17,7 +17,7 @@
 package store_queue_sequence_pkg;
 
     import store_queue_if_agent_pkg::*;
-    import dcache_if_agent_pkg::*;
+    import mem_if_agent_pkg::*;
     import uvm_pkg::*;
 
     `include "uvm_macros.svh"

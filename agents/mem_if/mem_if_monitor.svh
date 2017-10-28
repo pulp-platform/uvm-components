@@ -81,21 +81,23 @@ class mem_if_monitor extends uvm_component;
             end
             // request finished send it to the monitor
             forever begin
-                mem_if_seq_item cloned_item;
-                automatic logic [63:0] addr;
-                // wait for the rvalid minimum a cycle later
                 @(fu.pck iff fu.pck.data_rvalid);
-                addr = address.pop_front();
-                // if (m_cfg.mem_if_config == MASTER)
-                // $display("Popping Address: %0h", addr);
-                cmd.address = addr;
-                cmd.be      = be.pop_front();
-                cmd.data    = fu.pck.data_rdata;
-                // was this from a master or slave agent monitor?
-                cmd.isSlaveAnswer = (m_cfg.mem_if_config inside {SLAVE, SLAVE_REPLAY, SLAVE_NO_RANDOM}) ? 1'b1 : 1'b0;
-                // export the item via the analysis port
-                $cast(cloned_item, cmd.clone());
-                m_ap.write(cloned_item);
+                if (!m_cfg.store_if) begin
+                    mem_if_seq_item cloned_item;
+                    automatic logic [63:0] addr;
+                    // wait for the rvalid minimum a cycle later
+                    addr = address.pop_front();
+                    // if (m_cfg.mem_if_config == MASTER)
+                    // $display("Popping Address: %0h", addr);
+                    cmd.address = addr;
+                    cmd.be      = be.pop_front();
+                    cmd.data    = fu.pck.data_rdata;
+                    // was this from a master or slave agent monitor?
+                    cmd.isSlaveAnswer = (m_cfg.mem_if_config inside {SLAVE, SLAVE_REPLAY, SLAVE_NO_RANDOM}) ? 1'b1 : 1'b0;
+                    // export the item via the analysis port
+                    $cast(cloned_item, cmd.clone());
+                    m_ap.write(cloned_item);
+                end
             end
 
         join_none
