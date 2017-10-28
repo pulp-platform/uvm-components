@@ -24,7 +24,7 @@ class store_queue_env extends uvm_env;
     //------------------------------------------
     // agents
     store_queue_if_agent m_store_queue_if_agent;
-    dcache_if_agent m_dcache_if_agent;
+    mem_if_agent m_mem_if_agent;
 
     store_queue_if_sequencer m_store_queue_if_sequencer;
     store_queue_env_config m_cfg;
@@ -51,11 +51,11 @@ class store_queue_env extends uvm_env;
                                                m_cfg.m_store_queue_if_agent_config);
         m_store_queue_if_agent = store_queue_if_agent::type_id::create("m_store_queue_if_agent", this);
 
-        // DCache IF
-        uvm_config_db #(dcache_if_agent_config)::set(this, "m_dcache_if_agent*",
-                                               "dcache_if_agent_config",
-                                               m_cfg.m_dcache_if_agent_config);
-        m_dcache_if_agent = dcache_if_agent::type_id::create("m_dcache_if_agent", this);
+        // mem IF
+        uvm_config_db #(mem_if_agent_config)::set(this, "m_mem_if_agent*",
+                                               "mem_if_agent_config",
+                                               m_cfg.m_mem_if_agent_config);
+        m_mem_if_agent = mem_if_agent::type_id::create("m_mem_if_agent", this);
 
         // Get sequencer
         m_store_queue_if_sequencer = store_queue_if_sequencer::type_id::create("m_store_queue_if_sequencer", this);
@@ -66,7 +66,7 @@ class store_queue_env extends uvm_env;
     function void connect_phase(uvm_phase phase);
         m_store_queue_if_sequencer = m_store_queue_if_agent.m_sequencer;
         m_store_queue_if_agent.m_monitor.m_ap.connect(m_scoreboard.store_queue_item_export);
-        m_dcache_if_agent.m_monitor.m_ap.connect(m_scoreboard.dcache_item_export);
+        m_mem_if_agent.m_monitor.m_ap.connect(m_scoreboard.mem_item_export);
 
     endfunction: connect_phase
 endclass : store_queue_env

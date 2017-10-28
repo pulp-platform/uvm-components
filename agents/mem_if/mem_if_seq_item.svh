@@ -77,7 +77,7 @@ class mem_if_seq_item extends uvm_sequence_item;
       string s;
 
       $sformat(s, "%s\n", super.convert2string());
-      $sformat(s, "%s\nMode: %s\nAddress: %0h\nData: %0h\nBE: %0h \nisSlaveAnswer: %h", s, mode.name, address, data, be, isSlaveAnswer);
+      $sformat(s, "%sMode: %s\nAddress: %0h\nData: %0h\nBE: %0h \nisSlaveAnswer: %h", s, mode.name, address, data, be, isSlaveAnswer);
       return s;
 
     endfunction:convert2string

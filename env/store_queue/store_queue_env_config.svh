@@ -21,9 +21,9 @@ class store_queue_env_config extends uvm_object;
 
     // a store queue master interface
     virtual store_queue_if m_store_queue_if;
-    virtual dcache_if m_dcache_if;
+    virtual mem_if m_mem_if;
     // an agent config
     store_queue_if_agent_config m_store_queue_if_agent_config;
-    dcache_if_agent_config m_dcache_if_agent_config;
+    mem_if_agent_config m_mem_if_agent_config;
 
 endclass : store_queue_env_config

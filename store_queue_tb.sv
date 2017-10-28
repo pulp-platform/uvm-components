@@ -26,15 +26,20 @@ module store_queue_tb;
     logic store_valid;
     logic slave_data_gnt;
 
-    dcache_if      slave(clk);
+    mem_if         slave(clk);
     store_queue_if store_queue(clk);
+
+    logic [43:0] tag;
+    logic [11:0] index;
+
+    assign slave.address = {tag, index};
 
     store_buffer dut (
         .clk_i                 ( clk                                          ),
         .rst_ni                ( rst_ni                                       ),
         .flush_i               ( store_queue.flush                            ),
 
-        .no_st_pending_o       (),
+        .no_st_pending_o       (                                              ),
         .page_offset_i         ( store_queue.page_offset                      ),
         .page_offset_matches_o ( store_queue.page_offset_matches              ),
         .commit_i              ( store_queue.commit                           ),
@@ -45,14 +50,14 @@ module store_queue_tb;
         .data_i                ( store_queue.store_data                       ),
         .be_i                  ( store_queue.store_be                         ),
 
-        .address_index_o       ( slave.address_index                          ),
-        .address_tag_o         ( slave.address_tag                            ),
+        .address_index_o       ( index                                        ),
+        .address_tag_o         ( tag                                          ),
         .data_wdata_o          ( slave.data_wdata                             ),
         .data_req_o            ( slave.data_req                               ),
         .data_we_o             ( slave.data_we                                ),
         .data_be_o             ( slave.data_be                                ),
-        .kill_req_o            ( slave.kill_req                               ),
-        .tag_valid_o           ( slave.tag_valid                              ),
+        .kill_req_o            (                                              ), // this field has no meaning regarding the store interface
+        .tag_valid_o           (                                              ), // this field has no meaning regarding the store interface
         .data_gnt_i            ( slave.data_gnt & slave.data_req              ),
         .data_rvalid_i         ( slave.data_rvalid                            )
     );
@@ -68,11 +73,11 @@ module store_queue_tb;
             #10ns clk = ~clk;
     end
 
-    program testbench (dcache_if slave, store_queue_if store_queue);
+    program testbench (mem_if slave, store_queue_if store_queue);
         initial begin
             // register the interfaces
             uvm_config_db #(virtual store_queue_if)::set(null, "uvm_test_top", "store_queue_if", store_queue);
-            uvm_config_db #(virtual dcache_if)::set(null, "uvm_test_top", "dcache_if", slave);
+            uvm_config_db #(virtual mem_if)::set(null, "uvm_test_top", "mem_if", slave);
             // print the topology
             uvm_top.enable_print_topology = 1;
             // Start UVM test
