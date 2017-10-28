@@ -79,7 +79,7 @@ module core_tb;
         .data_if_address_i       ( data_if_data_address_i       ),
         .data_if_data_wdata_i    ( data_if_data_wdata_i         ),
         .data_if_data_req_i      ( data_if_data_req_i           ),
-        .data_if_data_we_i       ( ~data_if_data_we_i           ),
+        .data_if_data_we_i       ( data_if_data_we_i            ),
         .data_if_data_be_i       ( data_if_data_be_i            ),
         .data_if_data_gnt_o      ( data_if_data_gnt_o           ),
         .data_if_data_rvalid_o   ( data_if_data_rvalid_o        ),
@@ -107,26 +107,21 @@ module core_tb;
         .AXI_USER_WIDTH ( 1  )
     ) axi2per();
 
-
-    axi_mem_if_wrap #(
-        .AXI4_ADDRESS_WIDTH(64),
-        .AXI4_RDATA_WIDTH  (64),
-        .AXI4_WDATA_WIDTH  (64),
-        .AXI4_ID_WIDTH     (11),
-        .AXI4_USER_WIDTH   (1)
-    ) i_axi_mem_if_wrap (
-        .clk_i     ( clk_i                  ),
-        .rst_ni    ( rst_ni                 ),
-        .test_en_i ( 1'b0                   ),
-        .slave     ( axi2per                ),
-        .CEN       ( data_if_data_req_i     ),
-        .WEN       ( data_if_data_we_i      ),
-        .A         ( data_if_data_address_i ),
-        .D         ( data_if_data_wdata_i   ),
-        .BE        ( data_if_data_be_i      ),
-        .Q         ( data_if_data_rdata_o   )
+    axi2mem #(
+        .AXI_ID_WIDTH   (11),
+        .AXI_ADDR_WIDTH (64),
+        .AXI_DATA_WIDTH (64),
+        .AXI_USER_WIDTH (1)
+    ) i_axi2mem (
+        .slave   ( axi2per                ),
+        .req_o   ( data_if_data_req_i     ),
+        .we_o    ( data_if_data_we_i      ),
+        .addr_o  ( data_if_data_address_i ),
+        .be_o    ( data_if_data_be_i      ),
+        .data_o  ( data_if_data_wdata_i   ),
+        .data_i  ( data_if_data_rdata_o   ),
+        .*
     );
-
 
     axi_node_intf_wrap #(
         .NB_MASTER      ( 1            ),
