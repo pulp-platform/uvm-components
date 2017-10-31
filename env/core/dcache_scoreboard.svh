@@ -20,6 +20,10 @@ class dcache_scoreboard extends uvm_scoreboard;
     `uvm_component_utils(dcache_scoreboard)
 
     core_test_util ctu;
+    string sig_dump_name;
+    string base_dir;
+    longint unsigned begin_signature;
+    int f;
     //------------------------------------------
     // Methods
     //------------------------------------------
@@ -28,19 +32,31 @@ class dcache_scoreboard extends uvm_scoreboard;
     uvm_analysis_imp #(dcache_if_seq_item, dcache_scoreboard) load_export;
     uvm_analysis_imp #(dcache_if_seq_item, dcache_scoreboard) ptw_export;
 
+    // get the command line processor for parsing the plus args
+    static uvm_cmdline_processor uvcl = uvm_cmdline_processor::get_inst();
     // Standard UVM Methods:
     function new(string name = "dcache_scoreboard", uvm_component parent = null);
         super.new(name, parent);
     endfunction
 
-
     function void build_phase(uvm_phase phase);
         super.build_phase(phase);
+
+         void'(uvcl.get_arg_value("+BASEDIR=", base_dir));
 
         if (!uvm_config_db #(core_test_util)::get(this, "", "memory_file", ctu))
             `uvm_fatal("DCache Scoreboard", "Cannot get path to pre-load file")
 
         this.ctu = ctu;
+
+        if (!uvm_config_db #(longint unsigned)::get(this, "", "begin_signature", begin_signature))
+            `uvm_fatal("VIF CONFIG", "Cannot get() interface core_if from uvm_config_db. Have you set() it?")
+
+        // check if the argument was supplied
+        if(uvcl.get_arg_value("+signature=", this.sig_dump_name) == 0) begin
+            sig_dump_name = "test.ariane.sig";
+        end
+
         // create the analysis export
         store_export  = new("store_export", this);
         load_export  = new("load_export", this);
@@ -70,7 +86,7 @@ class dcache_scoreboard extends uvm_scoreboard;
             // $display("%s", load_seq_item.convert2string());
             addr = load_seq_item.address[63:0] - 64'h8000_0000;
             if (load_seq_item.data !== ctu.rmem[addr[63:3]]) begin
-                `uvm_error("DCache Scoreboard", $sformatf("Mismatch: Expected: %h Got: %h @%h", ctu.rmem[addr[63:3]], load_seq_item.data, load_seq_item.address[63:0]));
+                `uvm_fatal("DCache Scoreboard", $sformatf("Mismatch: Expected: %h Got: %h @%h", ctu.rmem[addr[63:3]], load_seq_item.data, load_seq_item.address[63:0]));
             end
 
         end
@@ -81,9 +97,19 @@ class dcache_scoreboard extends uvm_scoreboard;
 
     endtask
 
-    virtual function void extract_phase( uvm_phase phase );
+    virtual function void extract_phase (uvm_phase phase );
+        automatic logic [63:0] addr = begin_signature;
         super.extract_phase(phase);
-    endfunction
+        `uvm_info("Sig Dump", $sformatf("Dumping Signature File: %s", {base_dir, sig_dump_name}), UVM_HIGH);
+        // Dump Signature
+        if (this.begin_signature != '0) begin
+            this.f = $fopen({base_dir, "/", sig_dump_name}, "w");
+            // extract 256 byte register dump + 1024 byte memory dump starting from begin_signature symbol
+            for (int i = this.begin_signature; i < this.begin_signature + 162; i += 2)
+                $fwrite(this.f, "%x%x\n", this.ctu.rmem[i + 1], this.ctu.rmem[i]);
 
+            $fclose(this.f);
+        end
+    endfunction
 
 endclass : dcache_scoreboard

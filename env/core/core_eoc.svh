@@ -17,15 +17,11 @@
 class core_eoc extends uvm_scoreboard;
     // UVM Factory Registration Macro
     `uvm_component_utils(core_eoc)
-    longint unsigned tohost;
-    longint unsigned begin_signature;
     event got_write;
     int exit_code = 0;
-    int f;
     string sig_dump_name;
-    string base_dir;
+    longint unsigned tohost;
     uvm_phase phase;
-
     string_buffer sb;
 
     // get the command line processor for parsing the plus args
@@ -44,24 +40,12 @@ class core_eoc extends uvm_scoreboard;
     function void build_phase(uvm_phase phase);
         super.build_phase(phase);
 
-        // get the signature dump file name
-        void'(uvcl.get_arg_value("+BASEDIR=", base_dir));
-        // check if the argument was supplied
-        if(uvcl.get_arg_value("+signature=", sig_dump_name) == 0) begin
-            sig_dump_name = "test.ariane.sig";
-        end
+        if (!uvm_config_db #(longint unsigned)::get(this, "", "tohost", tohost))
+            `uvm_fatal("VIF CONFIG", "Cannot get() interface core_if from uvm_config_db. Have you set() it?")
 
         // create a new string buffer and intercept the characters written to the UART address
         sb = new("sb", this);
         sb.set_logger("UART");
-
-        sig_dump_name = {base_dir, "/", sig_dump_name};
-
-        if (!uvm_config_db #(longint unsigned)::get(this, "", "tohost", tohost))
-            `uvm_fatal("VIF CONFIG", "Cannot get() interface core_if from uvm_config_db. Have you set() it?")
-
-        if (!uvm_config_db #(longint unsigned)::get(this, "", "begin_signature", begin_signature))
-            `uvm_fatal("VIF CONFIG", "Cannot get() interface core_if from uvm_config_db. Have you set() it?")
 
         // create the analysis export
         item_export  = new("item_export", this);
@@ -96,18 +80,5 @@ class core_eoc extends uvm_scoreboard;
         phase.drop_objection(this, "core_eoc");
 
     endtask
-
-    virtual function void extract_phase( uvm_phase phase );
-        super.extract_phase(phase);
-        // Dump Signature
-        if (this.begin_signature != '0) begin
-            this.f = $fopen(sig_dump_name, "w");
-            // extract 256 byte register dump + 1024 byte memory dump starting from begin_signature symbol
-            for (int i = this.begin_signature; i < this.begin_signature + 162; i += 2)
-                $fwrite(this.f, "%x%x\n", $root.core_tb.core_mem_i.ram_i.mem[i + 1], $root.core_tb.core_mem_i.ram_i.mem[i]);
-
-            $fclose(this.f);
-        end
-    endfunction
 
 endclass : core_eoc

@@ -5,7 +5,7 @@ class core_test_util extends uvm_object; /* base class*/;
 -------------------------------------------------------------------------------*/
 
     logic [63:0] rmem [2**21];
-
+    string file;
 /*-------------------------------------------------------------------------------
 -- UVM Factory register
 -------------------------------------------------------------------------------*/
@@ -22,7 +22,7 @@ class core_test_util extends uvm_object; /* base class*/;
     endfunction : new
 
         // parses plusargs from command line to return filename
-    static function string get_file_name();
+    function string get_file_name();
         uvm_cmdline_processor uvcl = uvm_cmdline_processor::get_inst();
         string base_dir;
         string file_name;
@@ -30,7 +30,8 @@ class core_test_util extends uvm_object; /* base class*/;
         void'(uvcl.get_arg_value("+BASEDIR=", base_dir));
         void'(uvcl.get_arg_value("+ASMTEST=", file_name));
 
-        return {base_dir, "/", file_name};
+        file =  {base_dir, "/", file_name};
+        return file;
     endfunction : get_file_name
 
     function preload_memories(string file);
