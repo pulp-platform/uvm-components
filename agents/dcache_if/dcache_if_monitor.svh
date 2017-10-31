@@ -96,7 +96,7 @@ class dcache_if_monitor extends uvm_component;
             // 3. thread wait for valid data
             read_valid: begin
                 forever begin
-                    @(m_vif.pck iff m_vif.pck.data_rvalid && !m_vif.pck.kill_req);
+                    @(m_vif.pck iff (m_vif.pck.data_rvalid && !m_vif.pck.kill_req));
                     data_mbx.put(m_vif.pck.data_rdata);
                 end
             end
