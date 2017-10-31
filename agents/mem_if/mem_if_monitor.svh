@@ -74,6 +74,7 @@ class mem_if_monitor extends uvm_component;
                     cmd.address = fu.pck.address;
                     cmd.be = fu.pck.data_be;
                     cmd.data = fu.pck.data_wdata;
+                    cmd.mode = WRITE;
                     // export the item via the analysis port
                     $cast(cloned_item, cmd.clone());
                     m_ap.write(cloned_item);

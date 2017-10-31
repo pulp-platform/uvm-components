@@ -21,6 +21,12 @@ package core_env_pkg;
     import core_if_agent_pkg::*;
     import dcache_if_agent_pkg::*;
     import mem_if_agent_pkg::*;
+    // ----------------
+    // Core test Utils
+    // ----------------
+    `include "core_test_util.svh"
+    // DCache Scoreboard
+    `include "dcache_scoreboard.svh"
     // string buffer for console output
     `include "../../common/string_buffer.svh"
     // EOC signaling

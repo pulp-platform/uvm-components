@@ -21,7 +21,7 @@
 import ariane_pkg::*;
 import uvm_pkg::*;
 import core_lib_pkg::*;
-
+import core_env_pkg::core_test_util;
 `timescale 1ns / 1ps
 
 `define DRAM_BASE 64'h80000000
@@ -49,7 +49,8 @@ module core_tb;
 
     debug_if debug_if();
     core_if core_if (clk_i);
-    dcache_if dcache_if (clk_i);
+    dcache_if ptw (clk_i);
+    dcache_if load_unit (clk_i);
     mem_if store_unit (clk_i);
 
     logic [63:0] instr_if_address;
@@ -192,6 +193,33 @@ module core_tb;
     assign store_unit.data_rvalid   = dut.ex_stage_i.lsu_i.i_store_unit.data_rvalid_i;
     assign store_unit.data_rdata    = '0;
 
+    // connect load interface
+    assign load_unit.address_index = dut.ex_stage_i.lsu_i.i_load_unit.address_index_o;
+    assign load_unit.address_tag = dut.ex_stage_i.lsu_i.i_load_unit.address_tag_o;
+    assign load_unit.data_wdata = dut.ex_stage_i.lsu_i.i_load_unit.data_wdata_o;
+    assign load_unit.data_we = dut.ex_stage_i.lsu_i.i_load_unit.data_we_o;
+    assign load_unit.data_req = dut.ex_stage_i.lsu_i.i_load_unit.data_req_o;
+    assign load_unit.tag_valid = dut.ex_stage_i.lsu_i.i_load_unit.tag_valid_o;
+    assign load_unit.data_be = dut.ex_stage_i.lsu_i.i_load_unit.data_be_o;
+    assign load_unit.kill_req = dut.ex_stage_i.lsu_i.i_load_unit.kill_req_o;
+
+    assign load_unit.data_rvalid = dut.ex_stage_i.lsu_i.i_load_unit.data_rvalid_i;
+    assign load_unit.data_rdata = dut.ex_stage_i.lsu_i.i_load_unit.data_rdata_i;
+    assign load_unit.data_gnt = dut.ex_stage_i.lsu_i.i_load_unit.data_gnt_i;
+    // connect ptw interface
+    assign ptw.address_index = dut.ex_stage_i.lsu_i.i_mmu.ptw_i.address_index_o;
+    assign ptw.address_tag = dut.ex_stage_i.lsu_i.i_mmu.ptw_i.address_tag_o;
+    assign ptw.data_wdata = dut.ex_stage_i.lsu_i.i_mmu.ptw_i.data_wdata_o;
+    assign ptw.data_we = dut.ex_stage_i.lsu_i.i_mmu.ptw_i.data_we_o;
+    assign ptw.data_req = dut.ex_stage_i.lsu_i.i_mmu.ptw_i.data_req_o;
+    assign ptw.tag_valid = dut.ex_stage_i.lsu_i.i_mmu.ptw_i.tag_valid_o;
+    assign ptw.data_be = dut.ex_stage_i.lsu_i.i_mmu.ptw_i.data_be_o;
+    assign ptw.kill_req = dut.ex_stage_i.lsu_i.i_mmu.ptw_i.kill_req_o;
+
+    assign ptw.data_rvalid = dut.ex_stage_i.lsu_i.i_mmu.ptw_i.data_rvalid_i;
+    assign ptw.data_rdata = dut.ex_stage_i.lsu_i.i_mmu.ptw_i.data_rdata_i;
+    assign ptw.data_gnt = dut.ex_stage_i.lsu_i.i_mmu.ptw_i.data_gnt_i;
+
     // Clock process
     initial begin
         clk_i = 1'b0;
@@ -213,7 +241,6 @@ module core_tb;
     initial begin
         // initialize platform timer
         time_i = 64'b0;
-
         // increment timer with a frequency of 32.768 kHz
         forever begin
             #30.517578us;
@@ -221,44 +248,29 @@ module core_tb;
         end
     end
 
-    task preload_memories();
-        string plus_args [$];
-
-        string file;
-        string file_name;
-        string base_dir;
-        string test;
-        // offset the temporary RAM
-        logic [63:0] rmem [2**21];
-
-        // get the file name from a command line plus arg
-        void'(uvcl.get_arg_value("+BASEDIR=", base_dir));
-        void'(uvcl.get_arg_value("+ASMTEST=", file_name));
-
-        file = {base_dir, "/", file_name};
-
-        uvm_report_info("Program Loader", $sformatf("Pre-loading memory from file: %s\n", file), UVM_LOW);
-        // read elf file (DPI call)
-        void'(read_elf(file));
-
-        // get the objdump verilog file to load our memorys
-        $readmemh({file, ".hex"}, rmem);
-        // copy double-wordwise from verilog file
-        for (int i = 0; i < 2**21; i++) begin
-            core_mem_i.ram_i.mem[i] = rmem[i];
-        end
-
-    endtask : preload_memories
-
-    program testbench (core_if core_if, dcache_if dcache_if, mem_if mem_if);
+    program testbench (core_if core_if, dcache_if load_unit, dcache_if ptw, mem_if mem_if);
         longint unsigned begin_signature_address;
         longint unsigned tohost_address;
         string max_cycle_string;
+        string file;
+        core_test_util ctu;
+
         initial begin
-            preload_memories();
+            file = core_test_util::get_file_name();
+
+            ctu = core_test_util::type_id::create("core_test_util");
+            void'(ctu.preload_memories(file));
+
+            // read elf file (DPI call)
+            void'(read_elf(file));
+
+            // copy double-wordwise from verilog file
+            for (int i = 0; i < 2**21; i++)
+                core_mem_i.ram_i.mem[i] = ctu.rmem[i];
 
             uvm_config_db #(virtual core_if)::set(null, "uvm_test_top", "core_if", core_if);
-            uvm_config_db #(virtual dcache_if )::set(null, "uvm_test_top", "dcache_if", dcache_if);
+            uvm_config_db #(virtual dcache_if )::set(null, "uvm_test_top", "dcache_if", load_unit);
+            uvm_config_db #(virtual dcache_if )::set(null, "uvm_test_top", "ptw_if", ptw);
             uvm_config_db #(virtual mem_if )::set(null, "uvm_test_top", "mem_if", mem_if);
 
             // we are interested in the .tohost ELF symbol in-order to observe end of test signals
@@ -268,6 +280,7 @@ module core_tb;
             // pass tohost address to UVM resource DB
             uvm_config_db #(longint unsigned)::set(null, "uvm_test_top.m_env.m_eoc", "tohost", tohost_address);
             uvm_config_db #(longint unsigned)::set(null, "uvm_test_top.m_env.m_eoc", "begin_signature", ((begin_signature_address -`DRAM_BASE) >> 3));
+            uvm_config_db #(core_test_util)::set(null, "uvm_test_top.m_env.m_dcache_scoreboard", "memory_file", ctu);
             // print the topology
             // uvm_top.enable_print_topology = 1;
             // get the maximum cycle count the simulation is allowed to run
@@ -281,5 +294,5 @@ module core_tb;
         end
     endprogram
 
-    testbench tb(core_if, dcache_if, store_unit);
+    testbench tb(core_if, load_unit, ptw, store_unit);
 endmodule
