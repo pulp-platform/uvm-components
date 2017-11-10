@@ -45,6 +45,7 @@ module kerbin_tb;
 
     localparam BAUDRATE = 115200; // 1562500
     localparam TCP_PORT = 4567;
+    localparam CLK_SEL = 1'b1;
 
     // ------------------
     // UART
@@ -87,8 +88,8 @@ module kerbin_tb;
     // DUT (Kerbin)
     // ------------------
     kerbin dut (
-        .clk_i             ( clk_i          ),
-        .rtc_i             ( rtc_i          ),
+        .clk_i             ( rtc_i          ),
+        .clk_sel_i         ( CLK_SEL        ),
         .rst_ni            ( rst_ni         ),
         .test_en_i         ( 1'b0           ),
         .tck_i             ( tck            ),
@@ -123,7 +124,11 @@ module kerbin_tb;
         .hyper_rwds_i      (                ),
         .hyper_dq_oe_no    (                ),
         .hyper_dq_o        (                ),
-        .hyper_dq_i        (                )
+        .hyper_dq_i        (                ),
+        .gpio_o            (                ),
+        .gpio_i            (                ),
+        .gpio_oe_o         (                ),
+        .pad_cfg_o         (                )
     );
 
     // ------------------
@@ -164,6 +169,20 @@ module kerbin_tb;
 
     end
 
+     function automatic logic [257:0] get_memory_word(logic [255:0] in);
+        automatic logic [257:0] out = 'x;
+
+        for (int i = 0; i < 32; i++) begin
+            out[4*i+:4] = {in[i+192 +: 1], in[i+128 +: 1], in[i+64 +: 1], in[i +: 1]};
+        end
+
+        for (int i = 32; i < 64; i++) begin
+            out[4*i+1+:4] = {in[i+192 +: 1], in[i+128 +: 1], in[i+64 +: 1], in[i +: 1]};
+        end
+
+        return out;
+    endfunction : get_memory_word
+
     task preload_memories();
         string plus_args [$];
 
@@ -172,7 +191,7 @@ module kerbin_tb;
         string base_dir;
         string test;
         // offset the temporary RAM
-        logic [63:0] rmem [2**21];
+        logic [63:0] rmem [2**16];
 
         // get the file name from a command line plus arg
         void'(uvcl.get_arg_value("+BASEDIR=", base_dir));
@@ -187,8 +206,23 @@ module kerbin_tb;
         // get the objdump verilog file to load our memorys
         $readmemh({file, ".hex"}, rmem);
         // copy double-wordwise from verilog file
-        for (int i = 0; i < 2**21; i++) begin
-            dut.sp_ram_i.mem[i] = rmem[i];
+        for (int i = 0; i < 2**16; i+=4) begin
+            if (!i[18]) begin
+                for (int j = 0; j < 4; j++) begin
+                    automatic int unsigned i0 = 4*i+0+j;
+                    automatic int unsigned i1 = 4*i+4+j;
+                    automatic int unsigned i2 = 4*i+8+j;
+                    automatic int unsigned i3 = 4*i+12+j;
+                    dut.l2_mem.genblk2[0].cut.mem0.array[i+j] = get_memory_word({rmem[i3], rmem[i2], rmem[i1], rmem[i0]});
+                end
+            end else
+                for (int j = 0; j < 4; j++) begin
+                    automatic int unsigned i0 = 4*i+0+j;
+                    automatic int unsigned i1 = 4*i+4+j;
+                    automatic int unsigned i2 = 4*i+8+j;
+                    automatic int unsigned i3 = 4*i+12+j;
+                    dut.l2_mem.genblk2[1].cut.mem0.array[i+j] = get_memory_word({rmem[i3], rmem[i2], rmem[i1], rmem[i0]});
+                end
         end
 
     endtask : preload_memories
