@@ -34,7 +34,7 @@ class core_test_util extends uvm_object; /* base class*/;
         return file;
     endfunction : get_file_name
 
-    function preload_memories(string file);
+    function void preload_memories(string file);
 
         uvm_report_info("Program Loader", $sformatf("Pre-loading memory from file: %s\n", file), UVM_LOW);
 
