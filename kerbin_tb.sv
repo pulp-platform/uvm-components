@@ -46,10 +46,10 @@ module kerbin_tb;
     logic test_en_i;
     logic fetch_enable_i;
 
-    core_if core_if (clk_i);
-    dcache_if ptw (clk_i);
-    dcache_if load_unit (clk_i);
-    mem_if    store_unit (clk_i);
+    core_if   core_if (dut.uncore_i.coreplex_i.ariane_i.clk_i);
+    dcache_if ptw (dut.uncore_i.coreplex_i.ariane_i.clk_i);
+    dcache_if load_unit (dut.uncore_i.coreplex_i.ariane_i.clk_i);
+    mem_if    store_unit (dut.uncore_i.coreplex_i.ariane_i.clk_i);
 
     longint unsigned max_cycles;
 
@@ -163,10 +163,10 @@ module kerbin_tb;
     assign load_unit.tag_valid     = dut.uncore_i.coreplex_i.ariane_i.ex_stage_i.lsu_i.i_load_unit.tag_valid_o;
     assign load_unit.data_be       = dut.uncore_i.coreplex_i.ariane_i.ex_stage_i.lsu_i.i_load_unit.data_be_o;
     assign load_unit.kill_req      = dut.uncore_i.coreplex_i.ariane_i.ex_stage_i.lsu_i.i_load_unit.kill_req_o;
+    assign load_unit.data_rvalid   = dut.uncore_i.coreplex_i.ariane_i.ex_stage_i.lsu_i.i_load_unit.data_rvalid_i;
+    assign load_unit.data_rdata    = dut.uncore_i.coreplex_i.ariane_i.ex_stage_i.lsu_i.i_load_unit.data_rdata_i;
+    assign load_unit.data_gnt      = dut.uncore_i.coreplex_i.ariane_i.ex_stage_i.lsu_i.i_load_unit.data_gnt_i;
 
-    assign load_unit.data_rvalid = dut.uncore_i.coreplex_i.ariane_i.ex_stage_i.lsu_i.i_load_unit.data_rvalid_i;
-    assign load_unit.data_rdata  = dut.uncore_i.coreplex_i.ariane_i.ex_stage_i.lsu_i.i_load_unit.data_rdata_i;
-    assign load_unit.data_gnt    = dut.uncore_i.coreplex_i.ariane_i.ex_stage_i.lsu_i.i_load_unit.data_gnt_i;
     // connect ptw interface
     assign ptw.address_index = dut.uncore_i.coreplex_i.ariane_i.ex_stage_i.lsu_i.i_mmu.ptw_i.address_index_o;
     assign ptw.address_tag   = dut.uncore_i.coreplex_i.ariane_i.ex_stage_i.lsu_i.i_mmu.ptw_i.address_tag_o;
@@ -176,10 +176,9 @@ module kerbin_tb;
     assign ptw.tag_valid     = dut.uncore_i.coreplex_i.ariane_i.ex_stage_i.lsu_i.i_mmu.ptw_i.tag_valid_o;
     assign ptw.data_be       = dut.uncore_i.coreplex_i.ariane_i.ex_stage_i.lsu_i.i_mmu.ptw_i.data_be_o;
     assign ptw.kill_req      = dut.uncore_i.coreplex_i.ariane_i.ex_stage_i.lsu_i.i_mmu.ptw_i.kill_req_o;
-
-    assign ptw.data_rvalid = dut.uncore_i.coreplex_i.ariane_i.ex_stage_i.lsu_i.i_mmu.ptw_i.data_rvalid_i;
-    assign ptw.data_rdata  = dut.uncore_i.coreplex_i.ariane_i.ex_stage_i.lsu_i.i_mmu.ptw_i.data_rdata_i;
-    assign ptw.data_gnt    = dut.uncore_i.coreplex_i.ariane_i.ex_stage_i.lsu_i.i_mmu.ptw_i.data_gnt_i;
+    assign ptw.data_rvalid   = dut.uncore_i.coreplex_i.ariane_i.ex_stage_i.lsu_i.i_mmu.ptw_i.data_rvalid_i;
+    assign ptw.data_rdata    = dut.uncore_i.coreplex_i.ariane_i.ex_stage_i.lsu_i.i_mmu.ptw_i.data_rdata_i;
+    assign ptw.data_gnt      = dut.uncore_i.coreplex_i.ariane_i.ex_stage_i.lsu_i.i_mmu.ptw_i.data_gnt_i;
 
     // ------------------
     // Clocking Process
@@ -276,6 +275,7 @@ module kerbin_tb;
             uvm_report_info("Program Loader", $sformatf("tohost: %h begin_signature %h\n", tohost_address, begin_signature_address), UVM_LOW);
             // pass tohost address to UVM resource DB
             uvm_config_db #(longint unsigned)::set(null, "uvm_test_top.m_env.m_eoc", "tohost", tohost_address);
+            uvm_config_db #(longint unsigned)::set(null, "uvm_test_top.m_env.m_dcache_scoreboard", "dram_base", `DRAM_BASE);
             uvm_config_db #(longint unsigned)::set(null, "uvm_test_top.m_env.m_dcache_scoreboard", "begin_signature", ((begin_signature_address -`DRAM_BASE) >> 3));
             uvm_config_db #(core_test_util)::set(null, "uvm_test_top.m_env.m_dcache_scoreboard", "memory_file", ctu);
             // print the topology
