@@ -18,6 +18,7 @@ add wave -noupdate -group issue_stage /core_tb/dut/issue_stage_i/*
 
 add wave -noupdate -group ex_stage -group alu /core_tb/dut/ex_stage_i/alu_i/*
 add wave -noupdate -group ex_stage -group mult /core_tb/dut/ex_stage_i/i_mult/*
+add wave -noupdate -group ex_stage -group mult -group mul /core_tb/dut/ex_stage_i/i_mult/i_mul/*
 add wave -noupdate -group ex_stage -group mult -group div /core_tb/dut/ex_stage_i/i_mult/i_div/*
 add wave -noupdate -group ex_stage -group mult -group ff1 /core_tb/dut/ex_stage_i/i_mult/i_ff1/*
 
