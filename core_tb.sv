@@ -166,7 +166,7 @@ module core_tb;
         .data_if                 ( data_if                      ),
         .bypass_if               ( bypass_if                    ),
 
-        .irq_i                   ( core_if.irq                  ),
+        .irq_i                   ( {core_if.irq, core_if.irq}   ),
         .irq_id_i                ( core_if.irq_id               ),
         .irq_ack_o               ( core_if.irq_ack              ),
         .irq_sec_i               ( core_if.irq_sec              ),
