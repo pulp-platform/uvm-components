@@ -22,6 +22,7 @@ import ariane_pkg::*;
 import uvm_pkg::*;
 import core_lib_pkg::*;
 import core_env_pkg::core_test_util;
+
 `timescale 1ns / 1ps
 
 `define DRAM_BASE 64'h80000000
@@ -269,9 +270,9 @@ module core_tb;
                 core_mem_i.ram_i.mem[i] = ctu.rmem[i];
 
             uvm_config_db #(virtual core_if)::set(null, "uvm_test_top", "core_if", core_if);
-            uvm_config_db #(virtual dcache_if )::set(null, "uvm_test_top", "dcache_if", load_unit);
-            uvm_config_db #(virtual dcache_if )::set(null, "uvm_test_top", "ptw_if", ptw);
-            uvm_config_db #(virtual mem_if )::set(null, "uvm_test_top", "mem_if", mem_if);
+            uvm_config_db #(virtual dcache_if)::set(null, "uvm_test_top", "dcache_if", load_unit);
+            uvm_config_db #(virtual dcache_if)::set(null, "uvm_test_top", "ptw_if", ptw);
+            uvm_config_db #(virtual mem_if)::set(null, "uvm_test_top", "mem_if", mem_if);
 
             // we are interested in the .tohost ELF symbol in-order to observe end of test signals
             tohost_address = get_symbol_address("tohost");

@@ -24,6 +24,7 @@ class dcache_scoreboard extends uvm_scoreboard;
     string base_dir;
     longint unsigned begin_signature;
     int f;
+    longint unsigned dram_base;
     //------------------------------------------
     // Methods
     //------------------------------------------
@@ -49,6 +50,11 @@ class dcache_scoreboard extends uvm_scoreboard;
 
         this.ctu = ctu;
 
+        if (!uvm_config_db #(longint unsigned)::get(this, "", "dram_base", dram_base))
+            `uvm_fatal("DCache Scoreboard", "Cannot get path to pre-load file")
+
+        this.dram_base = dram_base;
+
         if (!uvm_config_db #(longint unsigned)::get(this, "", "begin_signature", begin_signature))
             `uvm_fatal("VIF CONFIG", "Cannot get() interface core_if from uvm_config_db. Have you set() it?")
 
@@ -73,20 +79,23 @@ class dcache_scoreboard extends uvm_scoreboard;
 
             for (int i = 0; i < 8; i++) begin
                 if (store_seq_item.be[i]) begin
-                    addr = store_seq_item.address[63:0] - 64'h8000_0000;
-                    ctu.rmem[addr[63:3]][8*i+:8] = store_seq_item.data[8*i+:8];
+                    addr = store_seq_item.address[63:0] - dram_base;
+                    // only log if in the cache-able regime
+                    if (store_seq_item.address[63:0] >= dram_base)
+                        ctu.rmem[addr[63:3]][8*i+:8] = store_seq_item.data[8*i+:8];
                     // $display("%h\n", store_seq_item.data[8*i+:8]);
                 end
             end
-        // this was a read
         end
 
+        // this was a read
         if (seq_item.get_type_name() == "dcache_if_seq_item") begin
             $cast(load_seq_item, seq_item.clone());
-            // $display("%s", load_seq_item.convert2string());
-            addr = load_seq_item.address[63:0] - 64'h8000_0000;
-            if (load_seq_item.data !== ctu.rmem[addr[63:3]]) begin
-                `uvm_fatal("DCache Scoreboard", $sformatf("Mismatch: Expected: %h Got: %h @%h", ctu.rmem[addr[63:3]], load_seq_item.data, load_seq_item.address[63:0]));
+            // $display("%t: %s", $time, load_seq_item.convert2string());
+            addr = load_seq_item.address[63:0] - dram_base;
+            // only check if in the cache-able region
+            if (load_seq_item.address[63:0] >= dram_base && load_seq_item.data !== ctu.rmem[addr[63:3]]) begin
+                `uvm_error("DCache Scoreboard", $sformatf("Mismatch: Expected: %h Got: %h @%h", ctu.rmem[addr[63:3]], load_seq_item.data, load_seq_item.address[63:0]));
             end
 
         end
