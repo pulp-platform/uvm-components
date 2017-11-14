@@ -87,7 +87,6 @@ module kerbin_tb;
     logic tdo;
     logic jtag_enable;
 
-    `ifdef DEBUG_DPI
     jtag_dpi #(
         .TCP_PORT ( TCP_PORT       )
     ) i_jtag_dpi (
@@ -99,7 +98,6 @@ module kerbin_tb;
         .tdi_o    ( tdi            ),
         .tdo_i    ( tdo            )
     );
-    `endif
 
     logic         spi_clk;
     logic [1:0]   spi_mode;
