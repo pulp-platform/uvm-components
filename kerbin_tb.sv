@@ -24,6 +24,12 @@ import core_env_pkg::core_test_util;
 `timescale 1ns / 1ps
 
 `define DRAM_BASE 64'h40000000
+`define DRV_SIG   .NDIN(1'b0), .NDOUT(), .DRV(2'b10), .PWROK(PWROK_S), .IOPWROK(IOPWROK_S), .BIAS(BIAS_S), .RETC(RETC_S)
+
+`define SPI_STD     2'b00
+`define SPI_QUAD_TX 2'b01
+`define SPI_QUAD_RX 2'b10
+`define SPI_IDLE    2'b11
 
 `include "uvm_macros.svh"
 
@@ -44,7 +50,6 @@ module kerbin_tb;
 
     logic clock_en_i;
     logic test_en_i;
-    logic fetch_enable_i;
 
     core_if   core_if (dut.uncore_i.coreplex_i.ariane_i.clk_i);
     dcache_if ptw (dut.uncore_i.coreplex_i.ariane_i.clk_i);
@@ -94,52 +99,119 @@ module kerbin_tb;
         .tdo_i    ( tdo            )
     );
 
+    logic         spi_clk;
+    logic [1:0]   spi_mode;
+    logic         spi_sdo0;
+    logic         spi_sdo1;
+    logic         spi_sdo2;
+    logic         spi_sdo3;
+    logic         spi_sdi0;
+    logic         spi_sdi1;
+    logic         spi_sdi2;
+    logic         spi_sdi3;
+    logic         use_qspi;
+    logic         spi_csn0;
+
+    wire          pad_csn0;
+    wire          pad_spi0;
+    wire          pad_spi1;
+    wire          pad_spi2;
+    wire          pad_spi3;
+    wire          pad_sclk;
+
+    logic         hyper_clk;
+    logic         hyper_clk_n;
+    logic         hyper_cs0_n;
+    logic         hyper_cs1_n;
+    logic         hyper_rwds_o;
+    logic         hyper_rwds_oe_n;
+    logic         hyper_rwds_i;
+    logic         hyper_dq_oe_n;
+    logic [7:0]   hyper_dq_o;
+    logic [7:0]   hyper_dq_i;
+    logic         hyper_reset_n;
+
+    wire  [7:0]   pad_dq;
+    wire          pad_rwds;
+    wire          pad_cs0_n;
+    wire          pad_clk;
+    wire          pad_clk_n;
+    wire          pad_reset;
     // ------------------
     // DUT (Kerbin)
     // ------------------
     kerbin dut (
-        .clk_i             ( rtc_i          ),
-        .clk_sel_i         ( CLK_SEL        ),
-        .rst_ni            ( rst_ni         ),
-        .test_en_i         ( 1'b0           ),
-        .tck_i             ( tck            ),
-        .tms_i             ( tms            ),
-        .trstn_i           ( trst           ),
-        .tdi_i             ( tdi            ),
-        .tdo_o             ( tdo            ),
-        .rts_o             (                ),
-        .cts_i             (                ),
-        .rx_i              ( uart_tx        ),
-        .tx_o              ( uart_rx        ),
-        .spi_clk           (                ),
-        .spi_csn0          (                ),
-        .spi_csn1          (                ),
-        .spi_csn2          (                ),
-        .spi_csn3          (                ),
-        .spi_mode          (                ),
-        .spi_sdo0          (                ),
-        .spi_sdo1          (                ),
-        .spi_sdo2          (                ),
-        .spi_sdo3          (                ),
-        .spi_sdi0          (                ),
-        .spi_sdi1          (                ),
-        .spi_sdi2          (                ),
-        .spi_sdi3          (                ),
-        .hyper_clk_o       (                ),
-        .hyper_clk_no      (                ),
-        .hyper_cs0_no      (                ),
-        .hyper_cs1_no      (                ),
-        .hyper_rwds_o      (                ),
-        .hyper_rwds_oe_no  (                ),
-        .hyper_rwds_i      (                ),
-        .hyper_dq_oe_no    (                ),
-        .hyper_dq_o        (                ),
-        .hyper_dq_i        (                ),
-        .gpio_o            (                ),
-        .gpio_i            (                ),
-        .gpio_oe_o         (                ),
-        .pad_cfg_o         (                )
+        .clk_i             ( rtc_i                  ),
+        .clk_sel_i         ( CLK_SEL                ),
+        .rst_ni            ( rst_ni                 ),
+        .test_en_i         ( 1'b0                   ),
+        .tck_i             ( tck                    ),
+        .tms_i             ( tms                    ),
+        .trstn_i           ( trst                   ),
+        .tdi_i             ( tdi                    ),
+        .tdo_o             ( tdo                    ),
+        .rts_o             (                        ),
+        .cts_i             (                        ),
+        .rx_i              ( uart_tx                ),
+        .tx_o              ( uart_rx                ),
+
+        .spi_clk           ( spi_clk                ),
+        .spi_csn0          ( spi_csn0               ),
+        .spi_csn1          (                        ),
+        .spi_csn2          (                        ),
+        .spi_csn3          (                        ),
+        .spi_mode          ( spi_mode               ),
+        .spi_sdo0          ( spi_sdo0               ),
+        .spi_sdo1          ( spi_sdo1               ),
+        .spi_sdo2          ( spi_sdo2               ),
+        .spi_sdo3          ( spi_sdo3               ),
+        .spi_sdi0          ( spi_sdi0               ),
+        .spi_sdi1          ( spi_sdi1               ),
+        .spi_sdi2          ( spi_sdi2               ),
+        .spi_sdi3          ( spi_sdi3               ),
+
+        .hyper_clk_o       ( hyper_clk              ),
+        .hyper_clk_no      ( hyper_clk_n            ),
+        .hyper_cs0_no      ( hyper_cs0_n            ),
+        .hyper_cs1_no      ( hyper_cs1_n            ),
+        .hyper_rwds_o      ( hyper_rwds_o           ),
+        .hyper_rwds_oe_no  ( hyper_rwds_oe_n        ),
+        .hyper_rwds_i      ( hyper_rwds_i           ),
+        .hyper_dq_oe_no    ( hyper_dq_oe_n          ),
+        .hyper_dq_o        ( hyper_dq_o             ),
+        .hyper_dq_i        ( hyper_dq_i             ),
+        .hyper_reset_no    ( hyper_reset_n          ),
+        .scl_pad_i         (                        ),
+        .scl_pad_o         (                        ),
+        .scl_padoen_o      (                        ),
+        .sda_pad_i         (                        ),
+        .sda_pad_o         (                        ),
+        .sda_padoen_o      (                        ),
+
+        .gpio_o            (                        ),
+        .gpio_i            (                        ),
+        .gpio_oe_o         (                        ),
+        .pad_cfg_o         (                        )
     );
+
+    // `define SPI_STD     2'b00
+    // `define SPI_QUAD_TX 2'b01
+    // `define SPI_QUAD_RX 2'b10
+    // `define SPI_IDLE    2'b11
+    logic spi0_oe, spi1_oe, spi2_oe, spi3_oe;
+
+    assign spi0_oe = (spi_mode == `SPI_STD) ? 1'b0 : (spi_mode == `SPI_QUAD_RX ? 1'b0 : (spi_mode == `SPI_QUAD_TX ? 1'b1 : 1'b0));
+    assign spi1_oe = (spi_mode == `SPI_STD) ? 1'b0 : (spi_mode == `SPI_QUAD_RX ? 1'b0 : (spi_mode == `SPI_QUAD_TX ? 1'b1 : 1'b0));
+    assign spi2_oe = (spi_mode == `SPI_STD) ? 1'b0 : (spi_mode == `SPI_QUAD_RX ? 1'b0 : (spi_mode == `SPI_QUAD_TX ? 1'b1 : 1'b0));
+    assign spi3_oe = (spi_mode == `SPI_STD) ? 1'b0 : (spi_mode == `SPI_QUAD_RX ? 1'b0 : (spi_mode == `SPI_QUAD_TX ? 1'b1 : 1'b0));
+
+    IN22FDX_GPIO18_10M3S30P_IO_H  padinst_hyper_clk   (.TRIEN(1'b0), .DATA(spi_clk),  .RXEN(1'b0), .Y( ), .PAD(pad_sclk), .PDEN('0), .PUEN(1'b0), `DRV_SIG );
+    IN22FDX_GPIO18_10M3S30P_IO_H  padinst_hyper_csn   (.TRIEN(1'b0), .DATA(spi_csn0), .RXEN(1'b0), .Y( ), .PAD(pad_csn0), .PDEN('0), .PUEN(1'b0), `DRV_SIG );
+
+    IN22FDX_GPIO18_10M3S30P_IO_H  padinst_hyper_spi0  (.TRIEN(~spi0_oe), .DATA(spi_sdo0), .RXEN(~spi0_oe), .Y(spi_sdi0), .PAD(pad_spi0), .PDEN('0), .PUEN(1'b0), `DRV_SIG );
+    IN22FDX_GPIO18_10M3S30P_IO_H  padinst_hyper_spi1  (.TRIEN(~spi0_oe), .DATA(spi_sdo1), .RXEN(~spi0_oe), .Y(spi_sdi1), .PAD(pad_spi1), .PDEN('0), .PUEN(1'b0), `DRV_SIG );
+    IN22FDX_GPIO18_10M3S30P_IO_H  padinst_hyper_spi2  (.TRIEN(~spi0_oe), .DATA(spi_sdo2), .RXEN(~spi0_oe), .Y(spi_sdi2), .PAD(pad_spi2), .PDEN('0), .PUEN(1'b0), `DRV_SIG );
+    IN22FDX_GPIO18_10M3S30P_IO_H  padinst_hyper_spi3  (.TRIEN(~spi0_oe), .DATA(spi_sdo3), .RXEN(~spi0_oe), .Y(spi_sdi3), .PAD(pad_spi3), .PDEN('0), .PUEN(1'b0), `DRV_SIG );
 
     // ------------------
     // Connect Checker
@@ -181,16 +253,63 @@ module kerbin_tb;
     assign ptw.data_gnt      = dut.uncore_i.coreplex_i.ariane_i.ex_stage_i.lsu_i.i_mmu.ptw_i.data_gnt_i;
 
     // ------------------
+    // Vendor Models
+    // ------------------
+    // HyperRAM
+    s27ks0641_bmod_wrapper i_hypersram (
+        .dq        ( pad_dq    ),
+        .rwds      ( pad_rwds  ),
+        .cs_n      ( pad_cs0_n ),
+        .ck        ( pad_clk   ),
+        .ck_n      ( pad_clk_n ),
+        .hwreset_n ( pad_reset )
+    );
+
+    // s25fs256s #(
+    //     .TimingModel("S25FS256SAGMFI000_F_30pF"),
+    //     .mem_file_name("./slm_files/flash_stim.slm")
+    // ) i_spi_flash_csn0 (
+
+    s25fs256s i_spi_flash_csn0 (
+        .SI         ( pad_spi0  ),
+        .SO         ( pad_spi1  ),
+        .SCK        ( pad_sclk  ),
+        .CSNeg      ( pad_csn0  ),
+        .WPNeg      ( pad_spi2  ),
+        .RESETNeg   ( pad_spi3  )
+    );
+
+
+    // output enable active low: 1'b0 -> output 1'b1 -> input
+    IN22FDX_GPIO18_10M3S30P_IO_H  padinst_hyper_dq0  (.TRIEN(hyper_dq_oe_n), .DATA(hyper_dq_o[0]), .RXEN(hyper_dq_oe_n), .Y(hyper_dq_i[0]), .PAD(pad_dq[0]), .PDEN('0), .PUEN(1'b0), `DRV_SIG );
+    IN22FDX_GPIO18_10M3S30P_IO_H  padinst_hyper_dq1  (.TRIEN(hyper_dq_oe_n), .DATA(hyper_dq_o[1]), .RXEN(hyper_dq_oe_n), .Y(hyper_dq_i[1]), .PAD(pad_dq[1]), .PDEN('0), .PUEN(1'b0), `DRV_SIG );
+    IN22FDX_GPIO18_10M3S30P_IO_H  padinst_hyper_dq2  (.TRIEN(hyper_dq_oe_n), .DATA(hyper_dq_o[2]), .RXEN(hyper_dq_oe_n), .Y(hyper_dq_i[2]), .PAD(pad_dq[2]), .PDEN('0), .PUEN(1'b0), `DRV_SIG );
+    IN22FDX_GPIO18_10M3S30P_IO_H  padinst_hyper_dq3  (.TRIEN(hyper_dq_oe_n), .DATA(hyper_dq_o[3]), .RXEN(hyper_dq_oe_n), .Y(hyper_dq_i[3]), .PAD(pad_dq[3]), .PDEN('0), .PUEN(1'b0), `DRV_SIG );
+    IN22FDX_GPIO18_10M3S30P_IO_H  padinst_hyper_dq4  (.TRIEN(hyper_dq_oe_n), .DATA(hyper_dq_o[4]), .RXEN(hyper_dq_oe_n), .Y(hyper_dq_i[4]), .PAD(pad_dq[4]), .PDEN('0), .PUEN(1'b0), `DRV_SIG );
+    IN22FDX_GPIO18_10M3S30P_IO_H  padinst_hyper_dq5  (.TRIEN(hyper_dq_oe_n), .DATA(hyper_dq_o[5]), .RXEN(hyper_dq_oe_n), .Y(hyper_dq_i[5]), .PAD(pad_dq[5]), .PDEN('0), .PUEN(1'b0), `DRV_SIG );
+    IN22FDX_GPIO18_10M3S30P_IO_H  padinst_hyper_dq6  (.TRIEN(hyper_dq_oe_n), .DATA(hyper_dq_o[6]), .RXEN(hyper_dq_oe_n), .Y(hyper_dq_i[6]), .PAD(pad_dq[6]), .PDEN('0), .PUEN(1'b0), `DRV_SIG );
+    IN22FDX_GPIO18_10M3S30P_IO_H  padinst_hyper_dq7  (.TRIEN(hyper_dq_oe_n), .DATA(hyper_dq_o[7]), .RXEN(hyper_dq_oe_n), .Y(hyper_dq_i[7]), .PAD(pad_dq[7]), .PDEN('0), .PUEN(1'b0), `DRV_SIG );
+
+    IN22FDX_GPIO18_10M3S30P_IO_H  padinst_hyper_rwds  (.TRIEN(hyper_rwds_oe_n), .DATA(hyper_rwds_o),  .RXEN(hyper_rwds_oe_n), .Y(hyper_rwds_i), .PAD(pad_rwds),  .PDEN('0), .PUEN(1'b0), `DRV_SIG );
+    IN22FDX_GPIO18_10M3S30P_IO_H  padinst_hyper_cs0_n (.TRIEN(1'b0),            .DATA(hyper_cs0_n),   .RXEN(1'b0),            .Y( ),            .PAD(pad_cs0_n), .PDEN('0), .PUEN(1'b0), `DRV_SIG );
+    IN22FDX_GPIO18_10M3S30P_IO_H  padinst_hyper_ck    (.TRIEN(1'b0),            .DATA(hyper_clk),     .RXEN(1'b0),            .Y( ),            .PAD(pad_clk),   .PDEN('0), .PUEN(1'b0), `DRV_SIG );
+    IN22FDX_GPIO18_10M3S30P_IO_H  padinst_hyper_ck_n  (.TRIEN(1'b0),            .DATA(hyper_clk_n),   .RXEN(1'b0),            .Y( ),            .PAD(pad_clk_n), .PDEN('0), .PUEN(1'b0), `DRV_SIG );
+    IN22FDX_GPIO18_10M3S30P_IO_H  padinst_hyper_rst_n (.TRIEN(1'b0),            .DATA(hyper_reset_n), .RXEN(1'b0),            .Y( ),            .PAD(pad_reset), .PDEN('0), .PUEN(1'b0), `DRV_SIG );
+
+    // ------------------
     // Clocking Process
     // ------------------
     initial begin
-        clk_i = 1'b0;
+            // 150000000000 fs
         rst_ni = 1'b0;
+        #300000 rst_ni = 1'b1;
+    end
+
+    initial begin
+        clk_i = 1'b0;
 
         repeat(8)
             #(CLOCK_PERIOD/2) clk_i = ~clk_i;
-
-        rst_ni = 1'b1;
 
         forever begin
             #(CLOCK_PERIOD/2) clk_i = 1'b1;
