@@ -44,6 +44,8 @@ module kerbin_tb;
     localparam int unsigned CLOCK_PERIOD = 20ns;
     localparam int unsigned RTC_PERIOD = (30.517578us/2);
 
+    parameter  ENABLE_DEBUG_BRIDGE = 0;
+
     logic clk_i;
     logic rst_ni;
     logic rtc_i;
@@ -87,17 +89,40 @@ module kerbin_tb;
     logic tdo;
     logic jtag_enable;
 
-    jtag_dpi #(
-        .TCP_PORT ( TCP_PORT       )
-    ) i_jtag_dpi (
-        .clk_i    ( clk_i          ),
-        .enable_i ( jtag_enable    ),
-        .tms_o    ( tms            ),
-        .tck_o    ( tck            ),
-        .trst_o   ( trst           ),
-        .tdi_o    ( tdi            ),
-        .tdo_i    ( tdo            )
-    );
+    jtag_sim_bus jtag_sim();
+
+    // mux JTAG -> this one activates the JTAG DPI
+    if (ENABLE_DEBUG_BRIDGE) begin
+
+        jtag_dpi #(
+            .TCP_PORT ( TCP_PORT       )
+        ) i_jtag_dpi (
+            .clk_i    ( clk_i          ),
+            .enable_i ( jtag_enable    ),
+            .tms_o    ( tms            ),
+            .tck_o    ( tck            ),
+            .trst_o   ( trst           ),
+            .tdi_o    ( tdi            ),
+            .tdo_i    ( tdo            )
+        );
+
+    end else begin
+
+        assign tck  = jtag_sim.tck;
+        assign trst = jtag_sim.trstn;
+        assign tdi  = jtag_sim.tdi;
+        assign tms  = jtag_sim.tms;
+        assign jtag_sim.tdo = tdo;
+
+        initial begin
+            // enable fetch enable for now
+            @(posedge jtag_enable)
+            pkg_jtag_adbg::init(jtag_sim, 2, 1);
+            pkg_jtag_pulp::init(jtag_sim, 2, 0);
+            jtag_sim.set_ir(8'b01001111, 8);
+            pkg_jtag_pulp::config_set(jtag_sim, 32'h8000_0001);
+        end
+    end
 
     logic         spi_clk;
     logic [1:0]   spi_mode;
@@ -141,10 +166,10 @@ module kerbin_tb;
     // DUT (Kerbin)
     // ------------------
     kerbin dut (
-        .clk_i             ( rtc_i                  ),
-        .clk_sel_i         ( CLK_SEL                ),
+        .clk_i             ( clk_i                  ),
         .rst_ni            ( rst_ni                 ),
         .test_en_i         ( 1'b0                   ),
+        .fetch_enable_i    ( 1'b0                   ),
         .tck_i             ( tck                    ),
         .tms_i             ( tms                    ),
         .trstn_i           ( trst                   ),
@@ -153,168 +178,8 @@ module kerbin_tb;
         .rts_o             (                        ),
         .cts_i             (                        ),
         .rx_i              ( uart_tx                ),
-        .tx_o              ( uart_rx                ),
-
-        .spi_clk           ( spi_clk                ),
-        .spi_csn0          ( spi_csn0               ),
-        .spi_csn1          (                        ),
-        .spi_csn2          (                        ),
-        .spi_csn3          (                        ),
-        .spi_mode          ( spi_mode               ),
-        .spi_sdo0          ( spi_sdo0               ),
-        .spi_sdo1          ( spi_sdo1               ),
-        .spi_sdo2          ( spi_sdo2               ),
-        .spi_sdo3          ( spi_sdo3               ),
-        .spi_sdi0          ( spi_sdi0               ),
-        .spi_sdi1          ( spi_sdi1               ),
-        .spi_sdi2          ( spi_sdi2               ),
-        .spi_sdi3          ( spi_sdi3               ),
-
-        .hyper_clk_o       ( hyper_clk              ),
-        .hyper_clk_no      ( hyper_clk_n            ),
-        .hyper_cs0_no      ( hyper_cs0_n            ),
-        .hyper_cs1_no      ( hyper_cs1_n            ),
-        .hyper_rwds_o      ( hyper_rwds_o           ),
-        .hyper_rwds_oe_no  ( hyper_rwds_oe_n        ),
-        .hyper_rwds_i      ( hyper_rwds_i           ),
-        .hyper_dq_oe_no    ( hyper_dq_oe_n          ),
-        .hyper_dq_o        ( hyper_dq_o             ),
-        .hyper_dq_i        ( hyper_dq_i             ),
-        .hyper_reset_no    ( hyper_reset_n          ),
-        .scl_pad_i         (                        ),
-        .scl_pad_o         (                        ),
-        .scl_padoen_o      (                        ),
-        .sda_pad_i         (                        ),
-        .sda_pad_o         (                        ),
-        .sda_padoen_o      (                        ),
-
-        .gpio_o            (                        ),
-        .gpio_i            (                        ),
-        .gpio_oe_o         (                        ),
-        .pad_cfg_o         (                        )
+        .tx_o              ( uart_rx                )
     );
-
-kerbin_cluster i_kerbin_cluster (
-    .cluster_clk_i               ( ),
-    .cluster_rstn_i              ( ),
-    .cluster_irq_i               ( ),
-    .rtc_i                       ( ),
-    .fetch_enable_i              ( ),
-    .boot_addr_i                 ( ),
-    .test_en_i                   ( ),
-    .jtag_tck_i                  ( ),
-    .jtag_tdi_i                  ( ),
-    .jtag_tdo_o                  ( ),
-    .jtag_tms_i                  ( ),
-    .jtag_trst_no                ( ),
-    .data_slave_aw_writetoken_i  ( ),
-    .data_slave_aw_addr_i        ( ),
-    .data_slave_aw_prot_i        ( ),
-    .data_slave_aw_region_i      ( ),
-    .data_slave_aw_len_i         ( ),
-    .data_slave_aw_size_i        ( ),
-    .data_slave_aw_burst_i       ( ),
-    .data_slave_aw_lock_i        ( ),
-    .data_slave_aw_cache_i       ( ),
-    .data_slave_aw_qos_i         ( ),
-    .data_slave_aw_id_i          ( ),
-    .data_slave_aw_user_i        ( ),
-    .data_slave_aw_readpointer_o ( ),
-    .data_slave_ar_writetoken_i  ( ),
-    .data_slave_ar_addr_i        ( ),
-    .data_slave_ar_prot_i        ( ),
-    .data_slave_ar_region_i      ( ),
-    .data_slave_ar_len_i         ( ),
-    .data_slave_ar_size_i        ( ),
-    .data_slave_ar_burst_i       ( ),
-    .data_slave_ar_lock_i        ( ),
-    .data_slave_ar_cache_i       ( ),
-    .data_slave_ar_qos_i         ( ),
-    .data_slave_ar_id_i          ( ),
-    .data_slave_ar_user_i        ( ),
-    .data_slave_ar_readpointer_o ( ),
-    .data_slave_w_writetoken_i   ( ),
-    .data_slave_w_data_i         ( ),
-    .data_slave_w_strb_i         ( ),
-    .data_slave_w_user_i         ( ),
-    .data_slave_w_last_i         ( ),
-    .data_slave_w_readpointer_o  ( ),
-    .data_slave_r_writetoken_o   ( ),
-    .data_slave_r_data_o         ( ),
-    .data_slave_r_resp_o         ( ),
-    .data_slave_r_last_o         ( ),
-    .data_slave_r_id_o           ( ),
-    .data_slave_r_user_o         ( ),
-    .data_slave_r_readpointer_i  ( ),
-    .data_slave_b_writetoken_o   ( ),
-    .data_slave_b_resp_o         ( ),
-    .data_slave_b_id_o           ( ),
-    .data_slave_b_user_o         ( ),
-    .data_slave_b_readpointer_i  ( ),
-    .data_master_aw_writetoken_o ( ),
-    .data_master_aw_addr_o       ( ),
-    .data_master_aw_prot_o       ( ),
-    .data_master_aw_region_o     ( ),
-    .data_master_aw_len_o        ( ),
-    .data_master_aw_size_o       ( ),
-    .data_master_aw_burst_o      ( ),
-    .data_master_aw_lock_o       ( ),
-    .data_master_aw_cache_o      ( ),
-    .data_master_aw_qos_o        ( ),
-    .data_master_aw_id_o         ( ),
-    .data_master_aw_user_o       ( ),
-    .data_master_aw_readpointer_i( ),
-    .data_master_ar_writetoken_o ( ),
-    .data_master_ar_addr_o       ( ),
-    .data_master_ar_prot_o       ( ),
-    .data_master_ar_region_o     ( ),
-    .data_master_ar_len_o        ( ),
-    .data_master_ar_size_o       ( ),
-    .data_master_ar_burst_o      ( ),
-    .data_master_ar_lock_o       ( ),
-    .data_master_ar_cache_o      ( ),
-    .data_master_ar_qos_o        ( ),
-    .data_master_ar_id_o         ( ),
-    .data_master_ar_user_o       ( ),
-    .data_master_ar_readpointer_i( ),
-    .data_master_w_writetoken_o  ( ),
-    .data_master_w_data_o        ( ),
-    .data_master_w_strb_o        ( ),
-    .data_master_w_user_o        ( ),
-    .data_master_w_last_o        ( ),
-    .data_master_w_readpointer_i ( ),
-    .data_master_r_writetoken_i  ( ),
-    .data_master_r_data_i        ( ),
-    .data_master_r_resp_i        ( ),
-    .data_master_r_last_i        ( ),
-    .data_master_r_id_i          ( ),
-    .data_master_r_user_i        ( ),
-    .data_master_r_readpointer_o ( ),
-    .data_master_b_writetoken_i  ( ),
-    .data_master_b_resp_i        ( ),
-    .data_master_b_id_i          ( ),
-    .data_master_b_user_i        ( ),
-    .data_master_b_readpointer_o ( )
-);
-
-    // `define SPI_STD     2'b00
-    // `define SPI_QUAD_TX 2'b01
-    // `define SPI_QUAD_RX 2'b10
-    // `define SPI_IDLE    2'b11
-    logic spi0_oe, spi1_oe, spi2_oe, spi3_oe;
-
-    assign spi0_oe = (spi_mode == `SPI_STD) ? 1'b0 : (spi_mode == `SPI_QUAD_RX ? 1'b0 : (spi_mode == `SPI_QUAD_TX ? 1'b1 : 1'b0));
-    assign spi1_oe = (spi_mode == `SPI_STD) ? 1'b0 : (spi_mode == `SPI_QUAD_RX ? 1'b0 : (spi_mode == `SPI_QUAD_TX ? 1'b1 : 1'b0));
-    assign spi2_oe = (spi_mode == `SPI_STD) ? 1'b0 : (spi_mode == `SPI_QUAD_RX ? 1'b0 : (spi_mode == `SPI_QUAD_TX ? 1'b1 : 1'b0));
-    assign spi3_oe = (spi_mode == `SPI_STD) ? 1'b0 : (spi_mode == `SPI_QUAD_RX ? 1'b0 : (spi_mode == `SPI_QUAD_TX ? 1'b1 : 1'b0));
-
-    IN22FDX_GPIO18_10M3S30P_IO_H  padinst_hyper_clk   (.TRIEN(1'b0), .DATA(spi_clk),  .RXEN(1'b0), .Y( ), .PAD(pad_sclk), .PDEN('0), .PUEN(1'b0), `DRV_SIG );
-    IN22FDX_GPIO18_10M3S30P_IO_H  padinst_hyper_csn   (.TRIEN(1'b0), .DATA(spi_csn0), .RXEN(1'b0), .Y( ), .PAD(pad_csn0), .PDEN('0), .PUEN(1'b0), `DRV_SIG );
-
-    IN22FDX_GPIO18_10M3S30P_IO_H  padinst_hyper_spi0  (.TRIEN(~spi0_oe), .DATA(spi_sdo0), .RXEN(~spi0_oe), .Y(spi_sdi0), .PAD(pad_spi0), .PDEN('0), .PUEN(1'b0), `DRV_SIG );
-    IN22FDX_GPIO18_10M3S30P_IO_H  padinst_hyper_spi1  (.TRIEN(~spi0_oe), .DATA(spi_sdo1), .RXEN(~spi0_oe), .Y(spi_sdi1), .PAD(pad_spi1), .PDEN('0), .PUEN(1'b0), `DRV_SIG );
-    IN22FDX_GPIO18_10M3S30P_IO_H  padinst_hyper_spi2  (.TRIEN(~spi0_oe), .DATA(spi_sdo2), .RXEN(~spi0_oe), .Y(spi_sdi2), .PAD(pad_spi2), .PDEN('0), .PUEN(1'b0), `DRV_SIG );
-    IN22FDX_GPIO18_10M3S30P_IO_H  padinst_hyper_spi3  (.TRIEN(~spi0_oe), .DATA(spi_sdo3), .RXEN(~spi0_oe), .Y(spi_sdi3), .PAD(pad_spi3), .PDEN('0), .PUEN(1'b0), `DRV_SIG );
 
     // ------------------
     // Connect Checker
@@ -354,50 +219,6 @@ kerbin_cluster i_kerbin_cluster (
     assign ptw.data_rvalid   = dut.uncore_i.coreplex_i.ariane_i.ex_stage_i.lsu_i.i_mmu.ptw_i.data_rvalid_i;
     assign ptw.data_rdata    = dut.uncore_i.coreplex_i.ariane_i.ex_stage_i.lsu_i.i_mmu.ptw_i.data_rdata_i;
     assign ptw.data_gnt      = dut.uncore_i.coreplex_i.ariane_i.ex_stage_i.lsu_i.i_mmu.ptw_i.data_gnt_i;
-
-    // ------------------
-    // Vendor Models
-    // ------------------
-    // HyperRAM
-    s27ks0641_bmod_wrapper i_hypersram (
-        .dq        ( pad_dq    ),
-        .rwds      ( pad_rwds  ),
-        .cs_n      ( pad_cs0_n ),
-        .ck        ( pad_clk   ),
-        .ck_n      ( pad_clk_n ),
-        .hwreset_n ( pad_reset )
-    );
-
-    // s25fs256s #(
-    //     .TimingModel("S25FS256SAGMFI000_F_30pF"),
-    //     .mem_file_name("./slm_files/flash_stim.slm")
-    // ) i_spi_flash_csn0 (
-
-    s25fs256s i_spi_flash_csn0 (
-        .SI         ( pad_spi0  ),
-        .SO         ( pad_spi1  ),
-        .SCK        ( pad_sclk  ),
-        .CSNeg      ( pad_csn0  ),
-        .WPNeg      ( pad_spi2  ),
-        .RESETNeg   ( pad_spi3  )
-    );
-
-
-    // output enable active low: 1'b0 -> output 1'b1 -> input
-    IN22FDX_GPIO18_10M3S30P_IO_H  padinst_hyper_dq0  (.TRIEN(hyper_dq_oe_n), .DATA(hyper_dq_o[0]), .RXEN(hyper_dq_oe_n), .Y(hyper_dq_i[0]), .PAD(pad_dq[0]), .PDEN('0), .PUEN(1'b0), `DRV_SIG );
-    IN22FDX_GPIO18_10M3S30P_IO_H  padinst_hyper_dq1  (.TRIEN(hyper_dq_oe_n), .DATA(hyper_dq_o[1]), .RXEN(hyper_dq_oe_n), .Y(hyper_dq_i[1]), .PAD(pad_dq[1]), .PDEN('0), .PUEN(1'b0), `DRV_SIG );
-    IN22FDX_GPIO18_10M3S30P_IO_H  padinst_hyper_dq2  (.TRIEN(hyper_dq_oe_n), .DATA(hyper_dq_o[2]), .RXEN(hyper_dq_oe_n), .Y(hyper_dq_i[2]), .PAD(pad_dq[2]), .PDEN('0), .PUEN(1'b0), `DRV_SIG );
-    IN22FDX_GPIO18_10M3S30P_IO_H  padinst_hyper_dq3  (.TRIEN(hyper_dq_oe_n), .DATA(hyper_dq_o[3]), .RXEN(hyper_dq_oe_n), .Y(hyper_dq_i[3]), .PAD(pad_dq[3]), .PDEN('0), .PUEN(1'b0), `DRV_SIG );
-    IN22FDX_GPIO18_10M3S30P_IO_H  padinst_hyper_dq4  (.TRIEN(hyper_dq_oe_n), .DATA(hyper_dq_o[4]), .RXEN(hyper_dq_oe_n), .Y(hyper_dq_i[4]), .PAD(pad_dq[4]), .PDEN('0), .PUEN(1'b0), `DRV_SIG );
-    IN22FDX_GPIO18_10M3S30P_IO_H  padinst_hyper_dq5  (.TRIEN(hyper_dq_oe_n), .DATA(hyper_dq_o[5]), .RXEN(hyper_dq_oe_n), .Y(hyper_dq_i[5]), .PAD(pad_dq[5]), .PDEN('0), .PUEN(1'b0), `DRV_SIG );
-    IN22FDX_GPIO18_10M3S30P_IO_H  padinst_hyper_dq6  (.TRIEN(hyper_dq_oe_n), .DATA(hyper_dq_o[6]), .RXEN(hyper_dq_oe_n), .Y(hyper_dq_i[6]), .PAD(pad_dq[6]), .PDEN('0), .PUEN(1'b0), `DRV_SIG );
-    IN22FDX_GPIO18_10M3S30P_IO_H  padinst_hyper_dq7  (.TRIEN(hyper_dq_oe_n), .DATA(hyper_dq_o[7]), .RXEN(hyper_dq_oe_n), .Y(hyper_dq_i[7]), .PAD(pad_dq[7]), .PDEN('0), .PUEN(1'b0), `DRV_SIG );
-
-    IN22FDX_GPIO18_10M3S30P_IO_H  padinst_hyper_rwds  (.TRIEN(hyper_rwds_oe_n), .DATA(hyper_rwds_o),  .RXEN(hyper_rwds_oe_n), .Y(hyper_rwds_i), .PAD(pad_rwds),  .PDEN('0), .PUEN(1'b0), `DRV_SIG );
-    IN22FDX_GPIO18_10M3S30P_IO_H  padinst_hyper_cs0_n (.TRIEN(1'b0),            .DATA(hyper_cs0_n),   .RXEN(1'b0),            .Y( ),            .PAD(pad_cs0_n), .PDEN('0), .PUEN(1'b0), `DRV_SIG );
-    IN22FDX_GPIO18_10M3S30P_IO_H  padinst_hyper_ck    (.TRIEN(1'b0),            .DATA(hyper_clk),     .RXEN(1'b0),            .Y( ),            .PAD(pad_clk),   .PDEN('0), .PUEN(1'b0), `DRV_SIG );
-    IN22FDX_GPIO18_10M3S30P_IO_H  padinst_hyper_ck_n  (.TRIEN(1'b0),            .DATA(hyper_clk_n),   .RXEN(1'b0),            .Y( ),            .PAD(pad_clk_n), .PDEN('0), .PUEN(1'b0), `DRV_SIG );
-    IN22FDX_GPIO18_10M3S30P_IO_H  padinst_hyper_rst_n (.TRIEN(1'b0),            .DATA(hyper_reset_n), .RXEN(1'b0),            .Y( ),            .PAD(pad_reset), .PDEN('0), .PUEN(1'b0), `DRV_SIG );
 
     // ------------------
     // Clocking Process
