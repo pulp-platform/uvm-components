@@ -161,7 +161,7 @@ module core_tb;
         .instr_if_data_gnt_i     ( instr_if_data_gnt            ),
         .instr_if_data_rvalid_i  ( instr_if_data_rvalid         ),
         .instr_if_data_rdata_i   ( instr_if_data_rdata          ),
-
+        .l1_icache_miss_i        ( 1'b0                         ),
         .data_if                 ( data_if                      ),
         .bypass_if               ( bypass_if                    ),
 
