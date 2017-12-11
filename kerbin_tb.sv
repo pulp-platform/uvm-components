@@ -88,6 +88,7 @@ module kerbin_tb;
     logic tdi;
     logic tdo;
     logic jtag_enable;
+    logic fetch_enable;
 
     jtag_sim_bus jtag_sim();
 
@@ -115,12 +116,14 @@ module kerbin_tb;
         assign jtag_sim.tdo = tdo;
 
         initial begin
+            fetch_enable = 1'b0;
             // enable fetch enable for now
             @(posedge jtag_enable)
             pkg_jtag_adbg::init(jtag_sim, 2, 1);
             pkg_jtag_pulp::init(jtag_sim, 2, 0);
             jtag_sim.set_ir(8'b01001111, 8);
             pkg_jtag_pulp::config_set(jtag_sim, 32'h8000_0001);
+            fetch_enable = 1'b1;
         end
     end
 
@@ -169,7 +172,7 @@ module kerbin_tb;
         .clk_i             ( clk_i                  ),
         .rst_ni            ( rst_ni                 ),
         .test_en_i         ( 1'b0                   ),
-        .fetch_enable_i    ( 1'b0                   ),
+        .fetch_enable_i    ( fetch_enable           ),
         .tck_i             ( tck                    ),
         .tms_i             ( tms                    ),
         .trstn_i           ( trst                   ),

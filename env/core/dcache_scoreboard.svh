@@ -107,18 +107,18 @@ class dcache_scoreboard extends uvm_scoreboard;
     endtask
 
     virtual function void extract_phase (uvm_phase phase );
-        // automatic logic [63:0] addr = begin_signature;
-        // super.extract_phase(phase);
-        // `uvm_info("Sig Dump", $sformatf("Dumping Signature File: %s", {base_dir, sig_dump_name}), UVM_HIGH);
-        // // Dump Signature
-        // if (this.begin_signature != '0) begin
-        //     this.f = $fopen({base_dir, "/", sig_dump_name}, "w");
-        //     // extract 256 byte register dump + 1024 byte memory dump starting from begin_signature symbol
-        //     for (int i = this.begin_signature; i < this.begin_signature + 162; i += 2)
-        //         $fwrite(this.f, "%x%x\n", this.ctu.rmem[i + 1], this.ctu.rmem[i]);
+        automatic logic [63:0] addr = begin_signature;
+        super.extract_phase(phase);
+        // Dump Signature
+        if (this.begin_signature != '0) begin
+            `uvm_info("Sig Dump", $sformatf("Dumping Signature File: %s", {base_dir, sig_dump_name}), UVM_HIGH);
+            this.f = $fopen({base_dir, "/", sig_dump_name}, "w");
+            // extract 256 byte register dump + 1024 byte memory dump starting from begin_signature symbol
+            for (int i = this.begin_signature; i < this.begin_signature + 162; i += 2)
+                $fwrite(this.f, "%x%x\n", this.ctu.rmem[i + 1], this.ctu.rmem[i]);
 
-        //     $fclose(this.f);
-        // end
+            $fclose(this.f);
+        end
     endfunction
 
 endclass : dcache_scoreboard
