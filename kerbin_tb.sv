@@ -298,7 +298,7 @@ module kerbin_tb;
                         automatic int unsigned i1 = 4*i+4+j;
                         automatic int unsigned i2 = 4*i+8+j;
                         automatic int unsigned i3 = 4*i+12+j;
-                        dut.l2_mem.genblk2[0].cut.mem0.array[i+j] = get_memory_word({ctu.rmem[i3], ctu.rmem[i2], ctu.rmem[i1], ctu.rmem[i0]});
+                        dut.l2_mem.genblk1[0].cut.mem0.array[i+j] = get_memory_word({ctu.rmem[i3], ctu.rmem[i2], ctu.rmem[i1], ctu.rmem[i0]});
                     end
                 end else
                     for (int j = 0; j < 4; j++) begin
@@ -306,7 +306,7 @@ module kerbin_tb;
                         automatic int unsigned i1 = 4*i+4+j;
                         automatic int unsigned i2 = 4*i+8+j;
                         automatic int unsigned i3 = 4*i+12+j;
-                        dut.l2_mem.genblk2[1].cut.mem0.array[i+j] = get_memory_word({ctu.rmem[i3], ctu.rmem[i2], ctu.rmem[i1], ctu.rmem[i0]});
+                        dut.l2_mem.genblk1[1].cut.mem0.array[i+j] = get_memory_word({ctu.rmem[i3], ctu.rmem[i2], ctu.rmem[i1], ctu.rmem[i0]});
                     end
                 end
 
