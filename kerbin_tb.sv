@@ -170,6 +170,7 @@ module kerbin_tb;
     // ------------------
     kerbin dut (
         .clk_i             ( clk_i                  ),
+        .rtc_i             ( rtc_i                  ),
         .rst_ni            ( rst_ni                 ),
         .test_en_i         ( 1'b0                   ),
         .fetch_enable_i    ( fetch_enable           ),
@@ -291,24 +292,28 @@ module kerbin_tb;
             // read elf file (DPI call)
             void'(read_elf(file));
 
-            for (int i = 0; i < 2**16; i+=4) begin
-                if (!i[18]) begin
-                    for (int j = 0; j < 4; j++) begin
-                        automatic int unsigned i0 = 4*i+0+j;
-                        automatic int unsigned i1 = 4*i+4+j;
-                        automatic int unsigned i2 = 4*i+8+j;
-                        automatic int unsigned i3 = 4*i+12+j;
-                        dut.l2_mem.genblk1[0].cut.mem0.array[i+j] = get_memory_word({ctu.rmem[i3], ctu.rmem[i2], ctu.rmem[i1], ctu.rmem[i0]});
-                    end
-                end else
-                    for (int j = 0; j < 4; j++) begin
-                        automatic int unsigned i0 = 4*i+0+j;
-                        automatic int unsigned i1 = 4*i+4+j;
-                        automatic int unsigned i2 = 4*i+8+j;
-                        automatic int unsigned i3 = 4*i+12+j;
-                        dut.l2_mem.genblk1[1].cut.mem0.array[i+j] = get_memory_word({ctu.rmem[i3], ctu.rmem[i2], ctu.rmem[i1], ctu.rmem[i0]});
-                    end
-                end
+            for (int i = 0; i < 2**21; i++) begin
+                dut.l2_mem.sp_ram_i.mem[i] = ctu.rmem[i];
+            end
+
+            // for (int i = 0; i < 2**16; i+=4) begin
+            //     if (!i[18]) begin
+            //         for (int j = 0; j < 4; j++) begin
+            //             automatic int unsigned i0 = 4*i+0+j;
+            //             automatic int unsigned i1 = 4*i+4+j;
+            //             automatic int unsigned i2 = 4*i+8+j;
+            //             automatic int unsigned i3 = 4*i+12+j;
+            //             dut.l2_mem.genblk1[0].cut.mem0.array[i+j] = get_memory_word({ctu.rmem[i3], ctu.rmem[i2], ctu.rmem[i1], ctu.rmem[i0]});
+            //         end
+            //     end else
+            //         for (int j = 0; j < 4; j++) begin
+            //             automatic int unsigned i0 = 4*i+0+j;
+            //             automatic int unsigned i1 = 4*i+4+j;
+            //             automatic int unsigned i2 = 4*i+8+j;
+            //             automatic int unsigned i3 = 4*i+12+j;
+            //             dut.l2_mem.genblk1[1].cut.mem0.array[i+j] = get_memory_word({ctu.rmem[i3], ctu.rmem[i2], ctu.rmem[i1], ctu.rmem[i0]});
+            //         end
+            //     end
 
             uvm_config_db #(virtual core_if)::set(null, "uvm_test_top", "core_if", core_if);
             uvm_config_db #(virtual dcache_if)::set(null, "uvm_test_top", "dcache_if", load_unit);

@@ -81,7 +81,7 @@ class dcache_scoreboard extends uvm_scoreboard;
                 if (store_seq_item.be[i]) begin
                     addr = store_seq_item.address[63:0] - dram_base;
                     // only log if in the cache-able regime
-                    if (store_seq_item.address[63:0] >= dram_base)
+                    if (store_seq_item.address[63:0] >= dram_base && store_seq_item.address[63:0] <= dram_base + 64'h100_0000)
                         ctu.rmem[addr[63:3]][8*i+:8] = store_seq_item.data[8*i+:8];
                     // $display("%h\n", store_seq_item.data[8*i+:8]);
                 end
@@ -94,7 +94,7 @@ class dcache_scoreboard extends uvm_scoreboard;
             // $display("%t: %s", $time, load_seq_item.convert2string());
             addr = load_seq_item.address[63:0] - dram_base;
             // only check if in the cache-able region
-            if (load_seq_item.address[63:0] >= dram_base && load_seq_item.data !== ctu.rmem[addr[63:3]]) begin
+            if (load_seq_item.address[63:0] >= dram_base && load_seq_item.data !== ctu.rmem[addr[63:3]] && store_seq_item.address[63:0] <= dram_base + 64'h100_0000) begin
                 `uvm_error("DCache Scoreboard", $sformatf("Mismatch: Expected: %h Got: %h @%h", ctu.rmem[addr[63:3]], load_seq_item.data, load_seq_item.address[63:0]));
             end
 
