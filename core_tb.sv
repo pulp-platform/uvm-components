@@ -25,7 +25,7 @@ import core_env_pkg::core_test_util;
 
 `timescale 1ns / 1ps
 
-`define DRAM_BASE 64'h80000000
+`define DRAM_BASE 64'h40000000
 
 `include "uvm_macros.svh"
 
@@ -138,7 +138,7 @@ module core_tb;
         .test_en_i      ( 1'b0                      ),
         .slave          ( {bypass_if, data_if}      ),
         .master         ( {axi2per}                 ),
-        .start_addr_i   ( {64'h8000_0000}           ),
+        .start_addr_i   ( {`DRAM_BASE}           ),
         .end_addr_i     ( {64'hFFFF_FFFF_FFFF_FFFF} )
     );
 
@@ -147,6 +147,7 @@ module core_tb;
         .rst_ni                  ( rst_ni                       ),
         .time_i                  ( time_i                       ),
         .time_irq_i              ( 1'b0                         ),
+        .ipi_i                   ( 1'b0                         ),
         .test_en_i               ( core_if.test_en              ),
         .fetch_enable_i          ( core_if.fetch_enable         ),
         .core_busy_o             ( core_if.core_busy            ),

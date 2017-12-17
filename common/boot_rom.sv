@@ -41,7 +41,7 @@ module boot_rom (
         // jr      t0
         case (address_i & (~3'h7))
             64'h1000: data_o = 64'h00a2a02345056291;
-            64'h1008: data_o = 64'h0202859302fe4285;
+            64'h1008: data_o = 64'h0202859302fa4285;
             64'h1010: data_o = 64'h00028067f1402573;
             64'h1018: data_o = 64'h0000000000000000;
             // device tree
