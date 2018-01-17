@@ -25,15 +25,15 @@ interface fetch_fifo_if (
         input clk
     );
 
-    wire                                flush;
-    wire [$bits(branchpredict_sbe)-1:0] in_branch_predict;
-    wire [63:0]                         in_addr;
-    wire [31:0]                         in_rdata;
-    wire                                in_valid;
-    wire                                in_ready;
-    wire [$bits(fetch_entry)-1:0]       fetch_entry;
-    wire                                out_valid;
-    wire                                out_ready;
+    wire                                  flush;
+    wire [$bits(branchpredict_sbe_t)-1:0] in_branch_predict;
+    wire [63:0]                           in_addr;
+    wire [31:0]                           in_rdata;
+    wire                                  in_valid;
+    wire                                  in_ready;
+    wire [$bits(fetch_entry_t)-1:0]       fetch_entry;
+    wire                                  out_valid;
+    wire                                  out_ready;
 
    clocking mck @(posedge clk);
         input  in_ready, fetch_entry, out_valid;

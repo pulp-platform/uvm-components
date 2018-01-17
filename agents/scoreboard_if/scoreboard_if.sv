@@ -13,26 +13,26 @@
 import ariane_pkg::*;
 
 interface scoreboard_if #(parameter int NR_WB_PORTS = 1)(input clk);
-    wire                                          flush;
-    wire [31:0][$bits(fu_t)-1:0]                  rd_clobber;
-    wire [4:0]                                    rs1_address;
-    wire [63:0]                                   rs1;
-    wire                                          rs1_valid;
-    wire [4:0]                                    rs2_address;
-    wire [63:0]                                   rs2;
-    wire                                          rs2_valid;
-    scoreboard_entry                              commit_instr;
-    wire                                          commit_ack;
-    scoreboard_entry                              decoded_instr;
-    wire                                          decoded_instr_valid;
-    wire                                          decoded_instr_ack;
-    scoreboard_entry                              issue_instr;
-    wire                                          issue_instr_valid;
-    wire                                          issue_ack;
-    wire [NR_WB_PORTS-1:0][TRANS_ID_BITS-1:0]     trans_id;
-    wire [NR_WB_PORTS-1:0][63:0]                  wdata;
-    wire [NR_WB_PORTS-1:0][$bits(exception)-1:0]  ex;
-    wire [NR_WB_PORTS-1:0]                        wb_valid;
+    wire                                           flush;
+    wire [31:0][$bits(fu_t)-1:0]                   rd_clobber;
+    wire [4:0]                                     rs1_address;
+    wire [63:0]                                    rs1;
+    wire                                           rs1_valid;
+    wire [4:0]                                     rs2_address;
+    wire [63:0]                                    rs2;
+    wire                                           rs2_valid;
+    scoreboard_entry_t                             commit_instr;
+    wire                                           commit_ack;
+    scoreboard_entry_t                             decoded_instr;
+    wire                                           decoded_instr_valid;
+    wire                                           decoded_instr_ack;
+    scoreboard_entry_t                             issue_instr;
+    wire                                           issue_instr_valid;
+    wire                                           issue_ack;
+    wire [NR_WB_PORTS-1:0][TRANS_ID_BITS-1:0]      trans_id;
+    wire [NR_WB_PORTS-1:0][63:0]                   wdata;
+    wire [NR_WB_PORTS-1:0][$bits(exception_t)-1:0] ex;
+    wire [NR_WB_PORTS-1:0]                         wb_valid;
 
     // Scoreboard interface configured as master
     clocking mck @(posedge clk);

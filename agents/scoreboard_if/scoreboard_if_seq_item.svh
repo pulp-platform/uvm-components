@@ -19,7 +19,7 @@ class scoreboard_if_seq_item extends uvm_sequence_item;
     // Data Members (Outputs rand, inputs non-rand)
     //------------------------------------------
     rand scoreboard_op instruction_type;
-    rand scoreboard_entry scoreboard_entry;
+    rand scoreboard_entry_t scoreboard_entry;
     rand int delay;
 
     //------------------------------------------

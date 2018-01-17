@@ -98,7 +98,7 @@ module scoreboard_tb;
             end
         end
 
-        scoreboard_entry issue_instruction;
+        scoreboard_entry_t issue_instruction;
         // pull e.g. issue instructions
         initial begin
             // reset values
@@ -173,7 +173,7 @@ module scoreboard_tb;
             end
         end
 
-        scoreboard_entry tmp_sbe;
+        scoreboard_entry_t tmp_sbe;
         initial begin
             wait(rst_ni == 1'b1);
             forever begin
@@ -185,7 +185,7 @@ module scoreboard_tb;
             end
         end
         // commit checker
-        scoreboard_entry comp;
+        scoreboard_entry_t comp;
         initial begin
             wait(rst_ni == 1'b1);
 

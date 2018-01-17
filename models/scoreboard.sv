@@ -1,28 +1,36 @@
+// Author: Florian Zaruba, ETH Zurich
+// Date: 10/28/2017
+// Description: Scoreboard model
+//              Golden model for the scoreboard
+//
+// Copyright (C) 2017 ETH Zurich, University of Bologna
+// All rights reserved.
+
 class Scoreboard;
 
-    scoreboard_entry decoded_instructions[$];
-    scoreboard_entry issued_instructions[$];
+    scoreboard_entry_t decoded_instructions[$];
+    scoreboard_entry_t issued_instructions[$];
     static logic[TRANS_ID_BITS-1:0] i = 0;
 
     // utility function to get randomized input data
-    static function scoreboard_entry randomize_scoreboard();
-            exception exception = { 63'h0, 63'h0, 1'b0};
-            scoreboard_entry entry = {
+    static function scoreboard_entry_t randomize_scoreboard();
+            exception_t exception = { 63'h0, 63'h0, 1'b0};
+            scoreboard_entry_t entry = {
                 63'b0, i, ALU, ADD, 5'h5, 5'h5, 5'h5, 64'h0, 1'b0, 1'b0, exception, 1'b0
             };
             return entry;
     endfunction : randomize_scoreboard
 
     // just allow one operation
-    function void submit_instruction(scoreboard_entry entry);
+    function void submit_instruction(scoreboard_entry_t entry);
         entry.trans_id = i;
         i = (++i % 8);
         decoded_instructions.push_back(entry);
     endfunction : submit_instruction
 
     // get the current issue instruction
-    function scoreboard_entry get_issue();
-        scoreboard_entry issue = decoded_instructions.pop_front();
+    function scoreboard_entry_t get_issue();
+        scoreboard_entry_t issue = decoded_instructions.pop_front();
         // put in issue queue
         issued_instructions.push_back(issue);
         return issue;
@@ -40,7 +48,7 @@ class Scoreboard;
     endfunction : write_back
 
     // commit the instruction, e.g.: delete it from the entries
-    function scoreboard_entry commit();
+    function scoreboard_entry_t commit();
         return issued_instructions.pop_front();
     endfunction : commit
 

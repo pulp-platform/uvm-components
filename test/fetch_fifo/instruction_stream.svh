@@ -50,7 +50,7 @@ class instruction_stream;
     // get an instruction stream of consecutive data
     function instruction_queue_entry_t get_instruction();
 
-        branchpredict_sbe bp = '0;
+        branchpredict_sbe_t bp = '0;
         instruction_queue_entry_t return_entry;
 
         logic [31:0] return_instruction;

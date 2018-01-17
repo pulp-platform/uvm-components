@@ -22,7 +22,7 @@
 typedef struct {
         logic [63:0] address;
         logic [31:0] instr;
-        branchpredict_sbe bp;
+        branchpredict_sbe_t bp;
 } instruction_queue_entry_t;
 
 class fetch_fifo_model;
@@ -33,7 +33,7 @@ class fetch_fifo_model;
 
     instruction_queue_entry_t instruction_queue[$];
 
-    function void put(logic [63:0] address, logic [31:0] instr, branchpredict_sbe bp);
+    function void put(logic [63:0] address, logic [31:0] instr, branchpredict_sbe_t bp);
         instruction_queue_entry_t param;
 
         if (is_unaligned == 0) begin
