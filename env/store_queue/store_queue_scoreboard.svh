@@ -18,14 +18,14 @@ class store_queue_scoreboard extends uvm_scoreboard;
     `uvm_component_utils(store_queue_scoreboard);
 
     uvm_analysis_imp #(store_queue_if_seq_item, store_queue_scoreboard) store_queue_item_export;
-    uvm_analysis_imp #(dcache_if_seq_item, store_queue_scoreboard) dcache_item_export;
+    uvm_analysis_imp #(mem_if_seq_item, store_queue_scoreboard) mem_item_export;
 
     store_queue_if_seq_item store_queue_items [$];
 
     function new(string name, uvm_component parent);
         super.new(name, parent);
         store_queue_item_export = new("store_queue_item_export", this);
-        dcache_item_export      = new("dcache_item_export", this);
+        mem_item_export      = new("mem_item_export", this);
     endfunction : new
 
     function void build_phase(uvm_phase phase);
@@ -37,7 +37,7 @@ class store_queue_scoreboard extends uvm_scoreboard;
         store_queue_if_seq_item casted_store_queue = new;
         store_queue_if_seq_item store_queue_item;
 
-        dcache_if_seq_item casted_dcache = new;
+        mem_if_seq_item casted_mem = new;
 
 
         // got a store queue item
@@ -48,17 +48,18 @@ class store_queue_scoreboard extends uvm_scoreboard;
             store_queue_items.push_back(casted_store_queue);
         end
 
-        // got an dcache item
-        if (seq_item.get_type_name() == "dcache_if_seq_item") begin
-            // cast dcache variable
-            $cast(casted_dcache, seq_item.clone());
+        // got an mem item
+        if (seq_item.get_type_name() == "mem_if_seq_item") begin
+            // cast mem variable
+            $cast(casted_mem, seq_item.clone());
             // get the latest store queue item
             store_queue_item = store_queue_items.pop_front();
             // match it with the expected result from the store queue side
-            if (store_queue_item.address != casted_dcache.address ||
-                store_queue_item.data != casted_dcache.wdata ||
-                store_queue_item.be != casted_dcache.be) begin
-                `uvm_error("Store Queue Scoreboard", $sformatf("Mismatch. Expected: %s Got: %s", store_queue_item.convert2string(), casted_dcache.convert2string()));
+            // $display("%s", casted_mem.convert2string());
+            if (store_queue_item.address != casted_mem.address ||
+                store_queue_item.data != casted_mem.data ||
+                store_queue_item.be != casted_mem.be) begin
+                `uvm_error("Store Queue Scoreboard", $sformatf("Mismatch. Expected: %s Got: %s", store_queue_item.convert2string(), casted_mem.convert2string()));
             end
         end
     endfunction

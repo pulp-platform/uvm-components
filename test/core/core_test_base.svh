@@ -39,6 +39,9 @@ class core_test_base extends uvm_test;
     // functional unit interface
     core_if_agent_config m_core_if_cfg;
     dcache_if_agent_config  m_dcache_if_cfg;
+    dcache_if_agent_config m_ptw_if_cfg;
+
+    mem_if_agent_config m_mem_if_cfg;
     //------------------------------------------
     // Methods
     //------------------------------------------
@@ -60,9 +63,20 @@ class core_test_base extends uvm_test;
 
         m_dcache_if_cfg = dcache_if_agent_config::type_id::create("m_dcache_if_cfg");
         // configure the instruction interface as a slave device
-        m_dcache_if_cfg.dcache_if_config = SLAVE_NO_RANDOM;
+        m_dcache_if_cfg.dcache_if_config = SLAVE_NO_RANDOM_DCACHE;
         m_dcache_if_cfg.active = UVM_PASSIVE;
         m_env_cfg.m_dcache_if_agent_config = m_dcache_if_cfg;
+
+        m_mem_if_cfg = mem_if_agent_config::type_id::create("m_mem_if_cfg");
+        m_mem_if_cfg.active = UVM_PASSIVE;
+        m_mem_if_cfg.store_if = 1'b1;
+        m_env_cfg.m_mem_if_agent_config = m_mem_if_cfg;
+
+        m_ptw_if_cfg = dcache_if_agent_config::type_id::create("m_ptw_if_cfg");
+        m_ptw_if_cfg.dcache_if_config = SLAVE_NO_RANDOM_DCACHE;
+        m_ptw_if_cfg.active = UVM_PASSIVE;
+        m_env_cfg.m_ptw_if_agent_config = m_ptw_if_cfg;
+
         // get core_if virtual interfaces
         // get master interface DB
         if (!uvm_config_db #(virtual core_if)::get(this, "", "core_if", m_core_if_cfg.m_vif))
@@ -72,6 +86,14 @@ class core_test_base extends uvm_test;
         if (!uvm_config_db #(virtual dcache_if)::get(this, "", "dcache_if", m_dcache_if_cfg.m_vif))
             `uvm_fatal("VIF CONFIG", "Cannot get() interface dcache_if from uvm_config_db. Have you set() it?")
         m_env_cfg.m_dcache_if = m_dcache_if_cfg.m_vif;
+
+        if (!uvm_config_db #(virtual dcache_if)::get(this, "", "ptw_if", m_ptw_if_cfg.m_vif))
+            `uvm_fatal("VIF CONFIG", "Cannot get() interface PTW interfaces from uvm_config_db. Have you set() it?")
+        m_env_cfg.m_ptw_if = m_ptw_if_cfg.m_vif;
+
+        if (!uvm_config_db #(virtual mem_if)::get(this, "", "mem_if", m_mem_if_cfg.fu))
+            `uvm_fatal("VIF CONFIG", "Cannot get() interface mem_if from uvm_config_db. Have you set() it?")
+        m_env_cfg.m_mem_if = m_mem_if_cfg.fu;
 
         // create environment
         uvm_config_db #(core_env_config)::set(this, "*", "core_env_config", m_env_cfg);

@@ -17,15 +17,11 @@
 class core_eoc extends uvm_scoreboard;
     // UVM Factory Registration Macro
     `uvm_component_utils(core_eoc)
-    longint unsigned tohost;
-    longint unsigned begin_signature;
     event got_write;
     int exit_code = 0;
-    int f;
     string sig_dump_name;
-    string base_dir;
+    longint unsigned tohost;
     uvm_phase phase;
-
     string_buffer sb;
 
     // get the command line processor for parsing the plus args
@@ -35,7 +31,7 @@ class core_eoc extends uvm_scoreboard;
     // Methods
     //------------------------------------------
     // analysis port
-    uvm_analysis_imp #(dcache_if_seq_item, core_eoc) item_export;
+    uvm_analysis_imp #(mem_if_seq_item, core_eoc) item_export;
     // Standard UVM Methods:
     function new(string name = "core_eoc", uvm_component parent = null);
         super.new(name, parent);
@@ -44,34 +40,21 @@ class core_eoc extends uvm_scoreboard;
     function void build_phase(uvm_phase phase);
         super.build_phase(phase);
 
-        // get the signature dump file name
-        void'(uvcl.get_arg_value("+BASEDIR=", base_dir));
-        // check if the argument was supplied
-        if(uvcl.get_arg_value("+signature=", sig_dump_name) == 0) begin
-            sig_dump_name = "test.ariane.sig";
-        end
+        if (!uvm_config_db #(longint unsigned)::get(this, "", "tohost", tohost))
+            `uvm_fatal("VIF CONFIG", "Cannot get() interface core_if from uvm_config_db. Have you set() it?")
 
         // create a new string buffer and intercept the characters written to the UART address
         sb = new("sb", this);
         sb.set_logger("UART");
 
-        sig_dump_name = {base_dir, "/", sig_dump_name};
-
-        if (!uvm_config_db #(longint unsigned)::get(this, "", "tohost", tohost))
-            `uvm_fatal("VIF CONFIG", "Cannot get() interface core_if from uvm_config_db. Have you set() it?")
-
-        if (!uvm_config_db #(longint unsigned)::get(this, "", "begin_signature", begin_signature))
-            `uvm_fatal("VIF CONFIG", "Cannot get() interface core_if from uvm_config_db. Have you set() it?")
-
         // create the analysis export
         item_export  = new("item_export", this);
     endfunction
 
-    function void write (dcache_if_seq_item seq_item);
-
+    function void write (mem_if_seq_item seq_item);
         // get the tohost value -> for details see the riscv-fesvr implementation
         if (seq_item.address == tohost) begin
-            exit_code = seq_item.wdata >> 1;
+            exit_code = seq_item.data >> 1;
             if (exit_code)
                 `uvm_error( "Core Test",  $sformatf("*** FAILED *** (tohost = %0d)", exit_code) )
             else
@@ -84,7 +67,7 @@ class core_eoc extends uvm_scoreboard;
         // UART Hack
         if (seq_item.address == 'h3000000) begin
             // $display("%c", seq_item.wdata);
-            sb.append(seq_item.wdata[7:0]);
+            sb.append(seq_item.data[7:0]);
         end
 
     endfunction
@@ -97,18 +80,5 @@ class core_eoc extends uvm_scoreboard;
         phase.drop_objection(this, "core_eoc");
 
     endtask
-
-    virtual function void extract_phase( uvm_phase phase );
-        super.extract_phase(phase);
-        // Dump Signature
-        if (this.begin_signature != '0) begin
-            this.f = $fopen(sig_dump_name, "w");
-            // extract 256 byte register dump + 1024 byte memory dump starting from begin_signature symbol
-            for (int i = this.begin_signature; i < this.begin_signature + 162; i += 2)
-                $fwrite(this.f, "%x%x\n", $root.core_tb.core_mem_i.ram_i.mem[i + 1], $root.core_tb.core_mem_i.ram_i.mem[i]);
-
-            $fclose(this.f);
-        end
-    endfunction
 
 endclass : core_eoc

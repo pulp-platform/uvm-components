@@ -16,9 +16,7 @@
 // (http://www.pulp-platform.org), under the copyright of ETH Zurich and the
 // University of Bologna.
 //
-module boot_rom #(
-    parameter string fdt_path = "ariane_tb.dtb"
-)(
+module boot_rom (
     input  logic        clk_i,
     input  logic        rst_ni,
     input  logic [63:0] address_i,
@@ -43,7 +41,7 @@ module boot_rom #(
         // jr      t0
         case (address_i & (~3'h7))
             64'h1000: data_o = 64'h00a2a02345056291;
-            64'h1008: data_o = 64'h0202859302fe4285;
+            64'h1008: data_o = 64'h0202859302fa4285;
             64'h1010: data_o = 64'h00028067f1402573;
             64'h1018: data_o = 64'h0000000000000000;
             // device tree
@@ -66,23 +64,4 @@ module boot_rom #(
         end
     end
 
-    // read device tree
-    initial begin
-        int f_byte;
-        int f_bin;
-        logic [63:0] out;
-
-        if (fdt_path != "") begin
-            f_bin = $fopen(fdt_path,"rb");
-
-            f_byte = $fread(fdt, f_bin);
-
-            foreach (fdt[i]) begin
-                // reverse bytes
-                fdt[i] = { << byte {fdt[i]}};
-                // $display("%h", fdt[i]);
-          end
-
-        end
-    end
 endmodule
