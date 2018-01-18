@@ -12,14 +12,28 @@
 #include <fesvr/htif_hexwriter.h>
 
 std::unique_ptr<simmem_t> htif;
+bool stop_sim = false;
 
-extern unsigned long long read_mem (unsigned long long address) {
+extern unsigned long long read_uint64 (unsigned long long address) {
   // printf("Requesting adress %llx\n", address);
+
+  if (address < 0x80000000) {
+    stop_sim = true;
+    return 0;
+  }
+
   return htif->memif().read_uint64(address);
 }
 
-extern void write_mem (unsigned long long address, unsigned long long data) {
-  // htif->memif().write_mem(address)
+extern void write_uint64 (unsigned long long address, unsigned long long data) {
+  printf("Writing %llx @ %llx\n", data, address);
+                 // 400010000
+  if (address < 0x80000000) {
+    // stop_sim = true;
+    return;
+  }
+
+  return htif->memif().write_uint64(address, data);
 }
 
 vluint64_t main_time = 0;       // Current simulation time
@@ -52,7 +66,7 @@ int main(int argc, char **argv) {
   top->fetch_enable_i = 0;
   top->boot_addr_i = 0x80000000;
 
-  while (sc_time_stamp() < 30000 && !Verilated::gotFinish()) {
+  while (sc_time_stamp() < 30000 && !Verilated::gotFinish() && !stop_sim) {
     tfp->dump(main_time);
 
     if (main_time > 40) {
