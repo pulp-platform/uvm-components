@@ -1,7 +1,28 @@
-// See LICENSE for license details.
+// Licensed to the Apache Software Foundation (ASF) under one
+// or more contributor license agreements.  See the NOTICE file
+// distributed with this work for additional information
+// regarding copyright ownership.  The ASF licenses this file
+// to you under the Apache License, Version 2.0 (the
+// "License"); you may not use this file except in compliance
+// with the License.  You may obtain a copy of the License at
+
+//   http://www.apache.org/licenses/LICENSE-2.0
+
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied.  See the License for the
+// specific language governing permissions and limitations
+// under the License.
+
 
 #ifndef __HTIF_SIMMEM_H
 #define __HTIF_SIMMEM_H
+#include "Variane_wrapped.h"
+#include "verilated.h"
+#include "verilated_vcd_c.h"
+#include "svdpi.h"
+#include "Variane_wrapped__Dpi.h"
 
 #include <map>
 #include <fesvr/htif.h>
@@ -16,6 +37,8 @@ class simmem_t : public htif_t
 {
 public:
   simmem_t(int argc, char** argv, size_t b, size_t w, size_t d);
+  int run();
+  vluint64_t main_time;       // Current simulation time
 private:
   size_t base;
   size_t width;
@@ -28,6 +51,14 @@ private:
   size_t chunk_max_size() { return 8; }
   size_t chunk_align() { return 8; }
   void reset() { }
+
+  context_t* host;
+  context_t target;
+
+  // htif
+  friend void sim_thread_main(void*);
+  void main();
+  void idle();
 
 };
 

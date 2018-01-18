@@ -1,6 +1,20 @@
-#include "Variane_wrapped.h"
-#include "verilated.h"
-#include "verilated_vcd_c.h"
+// Licensed to the Apache Software Foundation (ASF) under one
+// or more contributor license agreements.  See the NOTICE file
+// distributed with this work for additional information
+// regarding copyright ownership.  The ASF licenses this file
+// to you under the Apache License, Version 2.0 (the
+// "License"); you may not use this file except in compliance
+// with the License.  You may obtain a copy of the License at
+
+//   http://www.apache.org/licenses/LICENSE-2.0
+
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied.  See the License for the
+// specific language governing permissions and limitations
+// under the License.
+
 #include "svdpi.h"
 #include "Variane_wrapped__Dpi.h"
 
@@ -8,7 +22,6 @@
 #include "simmem.h"
 #include <fesvr/htif.h>
 #include <fesvr/memif.h>
-#include <fesvr/elfloader.h>
 #include <fesvr/htif_hexwriter.h>
 
 std::unique_ptr<simmem_t> htif;
@@ -16,32 +29,19 @@ bool stop_sim = false;
 
 extern unsigned long long read_uint64 (unsigned long long address) {
   // printf("Requesting adress %llx\n", address);
-
-  if (address < 0x80000000) {
-    stop_sim = true;
-    return 0;
-  }
-
   return htif->memif().read_uint64(address);
 }
 
 extern void write_uint64 (unsigned long long address, unsigned long long data) {
-  printf("Writing %llx @ %llx\n", data, address);
-                 // 400010000
-  if (address < 0x80000000) {
-    // stop_sim = true;
-    return;
-  }
-
-  return htif->memif().write_uint64(address, data);
+  // printf("Writing %llx @ %llx\n", data, address);
+  htif->memif().write_uint64(address, data);
 }
 
-vluint64_t main_time = 0;       // Current simulation time
 // This is a 64-bit integer to reduce wrap over issues and
 // allow modulus.  You can also use a double, if you wish.
 
 double sc_time_stamp () {       // Called by $time in Verilog
-    return main_time;           // converts to double, to match
+    return htif->main_time;           // converts to double, to match
                                 // what SystemC does
 }
 
@@ -52,39 +52,7 @@ int main(int argc, char **argv) {
   htif.reset(new simmem_t(argc, argv, 0x80000000, 8, 2097152));
 
   htif->start();
-
-  Verilated::traceEverOn(true);
-  std::unique_ptr<VerilatedVcdC> tfp(new VerilatedVcdC);
-
-  Verilated::commandArgs(argc, argv);
-  std::unique_ptr<Variane_wrapped> top(new Variane_wrapped);
-
-  top->trace (tfp.get(), 99);
-  tfp->open ("obj_dir/simx.vcd");
-
-  top->rst_ni = 0;
-  top->fetch_enable_i = 0;
-  top->boot_addr_i = 0x80000000;
-
-  while (sc_time_stamp() < 30000 && !Verilated::gotFinish() && !stop_sim) {
-    tfp->dump(main_time);
-
-    if (main_time > 40) {
-        top->rst_ni = 1; // de-assert reset
-        top->fetch_enable_i = 1;
-    }
-
-    if ((main_time % 10) == 1) {
-        top->clk_i = 1; // toggle clock
-    }
-    if ((main_time % 10) == 6) {
-        top->clk_i = 0;
-    }
-
-    top->eval();
-    main_time++;
-
-  }
+  htif->run();
 
   exit(0);
 }
