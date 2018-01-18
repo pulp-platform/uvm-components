@@ -17,7 +17,9 @@
 // University of Bologna.
 //
 
-module core_mem (
+module core_mem #(
+        parameter logic [63:0] DRAM_BASE = 64'h80000000
+    )(
     input logic clk_i,   // Clock
     input logic rst_ni,  // Asynchronous reset active low
 
@@ -47,8 +49,8 @@ module core_mem (
     logic [63:0] data_ram, data_rom;
 
     // look at the address of the previous cycle to determine what to return
-    assign instr_if_data_rdata_o = instr_address_q[30] ? fetch_data_ram : fetch_data_rom;
-    assign data_if_data_rdata_o = data_address_q[30] ? data_ram : data_rom;
+    assign instr_if_data_rdata_o = (instr_address_q >= DRAM_BASE) ? fetch_data_ram : fetch_data_rom;
+    assign data_if_data_rdata_o = (data_address_q >= DRAM_BASE) ? data_ram : data_rom;
 
     dp_ram  #(
         .ADDR_WIDTH    ( ADDRESS_WIDTH                                      ),
@@ -66,7 +68,7 @@ module core_mem (
         .addr_b_i      ( data_if_address_i[ADDRESS_WIDTH-1+3:3]             ),
         .wdata_b_i     ( data_if_data_wdata_i                               ),
         .rdata_b_o     ( data_ram                                           ),
-        .we_b_i        ( (data_if_address_i[30] ? data_if_data_we_i : 1'b0) ),
+        .we_b_i        ( ((data_if_address_i >= DRAM_BASE) ? data_if_data_we_i : 1'b0) ),
         .be_b_i        ( data_if_data_be_i                                  )
     );
 
