@@ -151,6 +151,8 @@ module core_tb;
         .boot_addr_i             ( core_if.boot_addr            ),
         .core_id_i               ( core_if.core_id              ),
         .cluster_id_i            ( core_if.cluster_id           ),
+        .flush_dcache_ack_o      (                              ),
+        .flush_dcache_i          ( 1'b0                         ),
 
         .instr_if_data_req_o     ( instr_if_data_req            ),
         .instr_if_address_o      ( instr_if_address             ),

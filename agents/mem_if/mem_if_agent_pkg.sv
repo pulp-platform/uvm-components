@@ -11,7 +11,7 @@
 // Author: Florian Zaruba, ETH Zurich
 // Date: 30.04.2017
 // Description: mem_if_agent package - compile unit
-
+package mem_if_agent_pkg;
     // configure the slave memory interface
     // 1. either as a slave with random grant response
     // 2. as a master interface making random data requests
