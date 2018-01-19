@@ -37,11 +37,18 @@ extern void write_uint64 (unsigned long long address, unsigned long long data) {
   htif->memif().write_uint64(address, data);
 }
 
+extern unsigned long long get_tohost_address() {
+  return htif->get_tohost_address();
+}
+
+extern unsigned long long get_fromhost_address() {
+  return htif->get_fromhost_address();
+}
 // This is a 64-bit integer to reduce wrap over issues and
 // allow modulus.  You can also use a double, if you wish.
 
 double sc_time_stamp () {       // Called by $time in Verilog
-    return htif->main_time;           // converts to double, to match
+    return htif->main_time;     // converts to double, to match
                                 // what SystemC does
 }
 
@@ -52,6 +59,9 @@ int main(int argc, char **argv) {
   htif.reset(new simmem_t(argc, argv, 0x80000000, 8, 2097152));
 
   htif->start();
+
+  // printf("fromhost: %llx, tohost: %llx\n", htif->get_fromhost_address(), htif->get_tohost_address());
+
   htif->run();
 
   exit(0);

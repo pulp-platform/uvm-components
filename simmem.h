@@ -38,6 +38,9 @@ class simmem_t : public htif_t
 public:
   simmem_t(int argc, char** argv, size_t b, size_t w, size_t d);
   int run();
+  addr_t get_tohost_address();
+  addr_t get_fromhost_address();
+
   vluint64_t main_time;       // Current simulation time
 private:
   size_t base;

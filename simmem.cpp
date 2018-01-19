@@ -67,6 +67,14 @@ void simmem_t::main()
     }
 }
 
+addr_t simmem_t::get_tohost_address() {
+  return htif_t::tohost_addr;
+}
+
+addr_t simmem_t::get_fromhost_address() {
+  return htif_t::fromhost_addr;
+}
+
 void simmem_t::idle()
 {
   target.switch_to();
