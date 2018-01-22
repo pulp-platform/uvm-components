@@ -28,12 +28,17 @@ std::unique_ptr<simmem_t> htif;
 bool stop_sim = false;
 
 extern unsigned long long read_uint64 (unsigned long long address) {
-  // printf("Requesting adress %llx\n", address);
+
+  // as we do not have physical memory protection at the moment check here for invalid accesses
+  // in the soc this is done by the AXI bus
+  if (address < 0x80000000) {
+    return 0xdeadbeafdeadbeef;
+  }
+
   return htif->memif().read_uint64(address);
 }
 
 extern void write_uint64 (unsigned long long address, unsigned long long data) {
-  // printf("Writing %llx @ %llx\n", data, address);
   htif->memif().write_uint64(address, data);
 }
 
@@ -59,8 +64,6 @@ int main(int argc, char **argv) {
   htif.reset(new simmem_t(argc, argv, 0x80000000, 8, 2097152));
 
   htif->start();
-
-  // printf("fromhost: %llx, tohost: %llx\n", htif->get_fromhost_address(), htif->get_tohost_address());
 
   htif->run();
 

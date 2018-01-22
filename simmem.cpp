@@ -45,7 +45,7 @@ void simmem_t::main()
     top->fetch_enable_i = 0;
     top->boot_addr_i = 0x80000000;
 
-    while (sc_time_stamp() < 30000 && !Verilated::gotFinish()) {
+    while (!Verilated::gotFinish()) {
       tfp->dump(main_time);
 
       if (main_time > 40) {
