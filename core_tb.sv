@@ -74,14 +74,14 @@ module core_tb;
         .instr_if_data_rvalid_o  ( instr_if_data_rvalid         ),
         .instr_if_data_rdata_o   ( instr_if_data_rdata          ),
 
-        .data_if_address_i       ( data_if_data_address_i       ),
-        .data_if_data_wdata_i    ( data_if_data_wdata_i         ),
-        .data_if_data_req_i      ( data_if_data_req_i           ),
-        .data_if_data_we_i       ( data_if_data_we_i            ),
-        .data_if_data_be_i       ( data_if_data_be_i            ),
-        .data_if_data_gnt_o      ( data_if_data_gnt_o           ),
-        .data_if_data_rvalid_o   ( data_if_data_rvalid_o        ),
-        .data_if_data_rdata_o    ( data_if_data_rdata_o         )
+        .data_if_address_i       (       ),
+        .data_if_data_wdata_i    (       ),
+        .data_if_data_req_i      ( 1'b0  ),
+        .data_if_data_we_i       (       ),
+        .data_if_data_be_i       (       ),
+        .data_if_data_gnt_o      (       ),
+        .data_if_data_rvalid_o   (       ),
+        .data_if_data_rdata_o    (       )
     );
 
     AXI_BUS #(
@@ -97,6 +97,13 @@ module core_tb;
         .AXI_ID_WIDTH   ( 10 ),
         .AXI_USER_WIDTH ( 1  )
     ) bypass_if();
+
+    AXI_BUS #(
+        .AXI_ADDR_WIDTH ( 64 ),
+        .AXI_DATA_WIDTH ( 64 ),
+        .AXI_ID_WIDTH   ( 10 ),
+        .AXI_USER_WIDTH ( 1  )
+    ) instr_if();
 
     AXI_BUS #(
         .AXI_ADDR_WIDTH ( 64 ),
@@ -123,19 +130,19 @@ module core_tb;
 
     axi_node_intf_wrap #(
         .NB_MASTER      ( 1            ),
-        .NB_SLAVE       ( 2            ),
+        .NB_SLAVE       ( 3            ),
         .AXI_ADDR_WIDTH ( 64           ),
         .AXI_DATA_WIDTH ( 64           ),
         .AXI_ID_WIDTH   ( 10           ),
         .AXI_USER_WIDTH ( 1            )
     ) i_axi_node (
-        .clk            ( clk_i                     ),
-        .rst_n          ( rst_ni                    ),
-        .test_en_i      ( 1'b0                      ),
-        .slave          ( {bypass_if, data_if}      ),
-        .master         ( {axi2per}                 ),
-        .start_addr_i   ( {`DRAM_BASE}           ),
-        .end_addr_i     ( {64'hFFFF_FFFF_FFFF_FFFF} )
+        .clk            ( clk_i                          ),
+        .rst_n          ( rst_ni                         ),
+        .test_en_i      ( 1'b0                           ),
+        .slave          ( {bypass_if, data_if, instr_if} ),
+        .master         ( {axi2per}                      ),
+        .start_addr_i   ( {`DRAM_BASE}                   ),
+        .end_addr_i     ( {64'hFFFF_FFFF_FFFF_FFFF}      )
     );
 
     ariane dut (
@@ -146,28 +153,18 @@ module core_tb;
         .ipi_i                   ( 1'b0                         ),
         .test_en_i               ( core_if.test_en              ),
         .fetch_enable_i          ( core_if.fetch_enable         ),
-        .core_busy_o             ( core_if.core_busy            ),
-        .flush_icache_o          (                              ),
+
         .boot_addr_i             ( core_if.boot_addr            ),
         .core_id_i               ( core_if.core_id              ),
         .cluster_id_i            ( core_if.cluster_id           ),
         .flush_dcache_ack_o      (                              ),
         .flush_dcache_i          ( 1'b0                         ),
 
-        .instr_if_data_req_o     ( instr_if_data_req            ),
-        .instr_if_address_o      ( instr_if_address             ),
-        .instr_if_data_be_o      (                              ),
-        .instr_if_data_gnt_i     ( instr_if_data_gnt            ),
-        .instr_if_data_rvalid_i  ( instr_if_data_rvalid         ),
-        .instr_if_data_rdata_i   ( instr_if_data_rdata          ),
-        .l1_icache_miss_i        ( 1'b0                         ),
+        .instr_if                ( instr_if                     ),
         .data_if                 ( data_if                      ),
         .bypass_if               ( bypass_if                    ),
 
         .irq_i                   ( {core_if.irq, core_if.irq}   ),
-        .irq_id_i                ( core_if.irq_id               ),
-        .irq_ack_o               ( core_if.irq_ack              ),
-        .irq_sec_i               ( core_if.irq_sec              ),
         .sec_lvl_o               ( core_if.sec_lvl              ),
 
         .debug_req_i             (                              ),
