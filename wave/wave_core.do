@@ -65,3 +65,6 @@ add wave -noupdate -group nbdcache -group load {/core_tb/dut/ex_stage_i/lsu_i/i_
 add wave -noupdate -group nbdcache -group store {/core_tb/dut/ex_stage_i/lsu_i/i_nbdcache/master_ports[2]/i_cache_ctrl/*}
 
 add wave -noupdate -group perf_counters {/core_tb/dut/i_perf_counters/*}
+
+add wave -noupdate -group icache {/core_tb/dut/i_icache/*}
+add wave -noupdate -group icache_ctrl {/core_tb/dut/i_icache/i_icache_controller_private/*}

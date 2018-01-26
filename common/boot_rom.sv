@@ -16,20 +16,12 @@ module boot_rom (
     input  logic        clk_i,
     input  logic        rst_ni,
     input  logic [63:0] address_i,
-    output logic [63:0] data_o, // combinatorial output
-    output logic [63:0] data_q_o, // sequential output
-    input  logic        req_i,
-    output logic        grant_o,
-    output logic        rvalid_o
+    output logic [63:0] data_o // combinatorial output
 );
 
-    // one kilobyte of device tree for now
-    logic [63:0] fdt [0:256];
     always_comb begin
-        automatic logic [63:0] fdt_address = address_i - 64'h1020;
 
         data_o = 64'hx;
-
         // auipc   t0, 0x0
         // addi    a1, t0, 32
         // csrr    a0, mhartid
@@ -45,19 +37,5 @@ module boot_rom (
                 data_o = 64'hx; //fdt[fdt_address[63:3]];
             end
         endcase
-        // we immediately give a grant - it's a ROM, nothing indeterministic about it
-        grant_o = req_i;
     end
-
-    // Sequential Process
-    always_ff @(posedge clk_i or negedge rst_ni) begin
-        if (~rst_ni) begin
-            rvalid_o <= 1'b0;
-            data_q_o <= 'x;
-        end else begin
-            rvalid_o <= req_i;
-            data_q_o <= data_o;
-        end
-    end
-
 endmodule

@@ -15,20 +15,12 @@
 module core_mem #(
         parameter logic [63:0] DRAM_BASE = 64'h80000000
     )(
-    input logic clk_i,   // Clock
-    input logic rst_ni,  // Asynchronous reset active low
-
-     // Instruction memory/cache
-    input  logic [63:0]              instr_if_address_i,
-    input  logic                     instr_if_data_req_i,
-    output logic                     instr_if_data_gnt_o,
-    output logic                     instr_if_data_rvalid_o,
-    output logic [63:0]              instr_if_data_rdata_o,
+    input logic                      clk_i,   // Clock
+    input logic                      rst_ni,  // Asynchronous reset active low
     // Data memory/cache
     input  logic [63:0]              data_if_address_i,
     input  logic                     data_if_data_req_i,
     input  logic [7:0]               data_if_data_be_i,
-    output logic                     data_if_data_gnt_o,
     output logic                     data_if_data_rvalid_o,
     output logic [63:0]              data_if_data_rdata_o,
     input  logic [63:0]              data_if_data_wdata_i,
@@ -37,14 +29,12 @@ module core_mem #(
     // we always grant the access
     localparam ADDRESS_WIDTH = 24;
 
-    logic [63:0] instr_address_q;
     logic [63:0] fetch_data_ram, fetch_data_rom;
 
-    logic [55:0] data_address_q;
+    logic [63:0] data_address_q;
     logic [63:0] data_ram, data_rom;
 
     // look at the address of the previous cycle to determine what to return
-    assign instr_if_data_rdata_o = (instr_address_q >= DRAM_BASE) ? fetch_data_ram : fetch_data_rom;
     assign data_if_data_rdata_o = (data_address_q >= DRAM_BASE) ? data_ram : data_rom;
 
     dp_ram  #(
@@ -52,10 +42,10 @@ module core_mem #(
         .DATA_WIDTH    ( 64                                                 )
     ) ram_i (
         .clk           ( clk_i                                              ),
-        .en_a_i        ( 1'b1                                               ),
-        .addr_a_i      ( instr_if_address_i[ADDRESS_WIDTH-1+3:3]            ),
+        .en_a_i        ( 1'b0                                               ),
+        .addr_a_i      (                                                    ),
         .wdata_a_i     (                                                    ), // not connected
-        .rdata_a_o     ( fetch_data_ram                                     ),
+        .rdata_a_o     (                                                    ),
         .we_a_i        ( 1'b0                                               ), // r/o interface
         .be_a_i        (                                                    ),
         // data RAM
@@ -67,47 +57,21 @@ module core_mem #(
         .be_b_i        ( data_if_data_be_i                                  )
     );
 
-    boot_rom instr_boot_rom_i (
-        .clk_i     ( clk_i           ),
-        .rst_ni    ( rst_ni          ),
-        .address_i ( instr_address_q ),
-        .data_o    ( fetch_data_rom  ),
-        .data_q_o  (                 ),
-        .req_i     (                 ),
-        .grant_o   (                 ),
-        .rvalid_o  (                 )
-    );
-
     boot_rom data_boot_rom_i (
         .clk_i     ( clk_i                        ),
         .rst_ni    ( rst_ni                       ),
-        .address_i ( {5'b0, data_address_q, 3'b0} ),
-        .data_o    ( data_rom                     ),
-        .data_q_o  (                              ),
-        .req_i     (                              ),
-        .grant_o   (                              ),
-        .rvalid_o  (                              )
+        .address_i ( data_address_q               ),
+        .data_o    ( data_rom                     )
     );
-
-    // give the grant immediately
-    assign data_if_data_gnt_o    = data_if_data_req_i;
-    // we always grant the request
-    assign instr_if_data_gnt_o   = instr_if_data_req_i;
 
     // Output the rvalid one cycle later, together with the rdata
     always_ff @(posedge clk_i or negedge rst_ni) begin : proc_
-        if(~rst_ni) begin
-            instr_if_data_rvalid_o <= 1'b0;
+        if (~rst_ni) begin
             data_if_data_rvalid_o  <= 1'b0;
-
-            instr_address_q        <= '0;
             data_address_q         <= '0;
         end else begin
-            instr_if_data_rvalid_o <= instr_if_data_req_i;
-            instr_address_q        <= instr_if_address_i;
-
             data_if_data_rvalid_o  <= data_if_data_req_i;
-            data_address_q         <= data_if_address_i[55:0];
+            data_address_q         <= data_if_address_i;
         end
     end
 endmodule

@@ -68,20 +68,14 @@ module core_tb;
     core_mem core_mem_i (
         .clk_i                   ( clk_i                        ),
         .rst_ni                  ( rst_ni                       ),
-        .instr_if_address_i      ( instr_if_address             ),
-        .instr_if_data_req_i     ( instr_if_data_req            ),
-        .instr_if_data_gnt_o     ( instr_if_data_gnt            ),
-        .instr_if_data_rvalid_o  ( instr_if_data_rvalid         ),
-        .instr_if_data_rdata_o   ( instr_if_data_rdata          ),
 
-        .data_if_address_i       (       ),
-        .data_if_data_wdata_i    (       ),
-        .data_if_data_req_i      ( 1'b0  ),
-        .data_if_data_we_i       (       ),
-        .data_if_data_be_i       (       ),
-        .data_if_data_gnt_o      (       ),
-        .data_if_data_rvalid_o   (       ),
-        .data_if_data_rdata_o    (       )
+        .data_if_address_i       ( data_if_data_address_i       ),
+        .data_if_data_wdata_i    ( data_if_data_wdata_i         ),
+        .data_if_data_req_i      ( data_if_data_req_i           ),
+        .data_if_data_we_i       ( data_if_data_we_i            ),
+        .data_if_data_be_i       ( data_if_data_be_i            ),
+        .data_if_data_rvalid_o   ( data_if_data_rvalid_o        ),
+        .data_if_data_rdata_o    ( data_if_data_rdata_o         )
     );
 
     AXI_BUS #(
@@ -108,12 +102,12 @@ module core_tb;
     AXI_BUS #(
         .AXI_ADDR_WIDTH ( 64 ),
         .AXI_DATA_WIDTH ( 64 ),
-        .AXI_ID_WIDTH   ( 11 ),
+        .AXI_ID_WIDTH   ( 12 ),
         .AXI_USER_WIDTH ( 1  )
     ) axi2per();
 
     axi2mem #(
-        .AXI_ID_WIDTH   (11),
+        .AXI_ID_WIDTH   (12),
         .AXI_ADDR_WIDTH (64),
         .AXI_DATA_WIDTH (64),
         .AXI_USER_WIDTH (1)
@@ -141,7 +135,7 @@ module core_tb;
         .test_en_i      ( 1'b0                           ),
         .slave          ( {bypass_if, data_if, instr_if} ),
         .master         ( {axi2per}                      ),
-        .start_addr_i   ( {`DRAM_BASE}                   ),
+        .start_addr_i   ( {64'h0}                        ),
         .end_addr_i     ( {64'hFFFF_FFFF_FFFF_FFFF}      )
     );
 

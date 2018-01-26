@@ -37,7 +37,7 @@ class core_if_driver extends uvm_driver #(core_if_seq_item);
         // seq_item_port.item_done();
         m_vif.mck.test_en      <= 1'b0;
         m_vif.mck.clock_en     <= 1'b1;
-        m_vif.mck.boot_addr    <= 64'h1000;
+        m_vif.mck.boot_addr    <= 64'h8000_0000;
         m_vif.mck.core_id      <= 4'b0;
         m_vif.mck.cluster_id   <= 6'b0;
         m_vif.mck.irq          <= 1'b0;
