@@ -15,51 +15,81 @@
 // specific language governing permissions and limitations
 // under the License.
 
-#include <iostream>
 #include <assert.h>
 #include "simmem.h"
 
 simmem_t::simmem_t(int argc, char** argv, size_t b, size_t w, size_t d)
-  : htif_t(argc, argv), base(b), width(w), depth(d)
-{
+  : htif_t(argc, argv), base(b), width(w), depth(d) {
+
+}
+simmem_t::simmem_t(const std::vector<std::string>& args, size_t b, size_t w, size_t d)
+  : htif_t(args), base(b), width(w), depth(d) {
 
 }
 
-void sim_thread_main(void* arg)
-{
+void sim_thread_main(void* arg) {
   ((simmem_t*)arg)->main();
 }
 
-void simmem_t::main()
-{
-    Verilated::traceEverOn(true);
+void simmem_t::main() {
+
+    std::unique_ptr<Variane_wrapped> top(new Variane_wrapped);
     std::unique_ptr<VerilatedVcdC> tfp(new VerilatedVcdC);
 
-    // Verilated::commandArgs(argc, argv);
-    std::unique_ptr<Variane_wrapped> top(new Variane_wrapped);
+    if (this->vcd_file != NULL) {
+      Verilated::traceEverOn(true);
+      top->trace (tfp.get(), 99);
+      tfp->open (this->vcd_file);
+    }
 
-    top->trace (tfp.get(), 99);
-    tfp->open ("obj_dir/simx.vcd");
-
+    top->core_id_i = 0;
+    top->cluster_id_i = 0;
     top->rst_ni = 0;
     top->fetch_enable_i = 0;
     top->boot_addr_i = 0x80000000;
+    top->flush_req_i = 0;
+
 
     while (!Verilated::gotFinish()) {
-      tfp->dump(main_time);
+
+      if (this->vcd_file != NULL) {
+        tfp->dump(main_time);
+      }
 
       if (main_time > 40) {
           top->rst_ni = 1; // de-assert reset
           top->fetch_enable_i = 1;
       }
 
-      if ((main_time % 10) == 1) {
+      if ((main_time % 10) == 0) {
           top->clk_i = 1; // toggle clock
       }
+
+      // Apply
+      if ((main_time % 10) == 8) {
+        if (!flush_req.empty() && !top->flushing_o) {
+          flush_req.pop();
+          flushing.push(true);
+          top->flush_req_i = 1;
+        }
+      }
+
+      // Test
+      if ((main_time % 10) == 1) {
+        if (!flushing.empty()) {
+          flushing.pop();
+          top->flush_req_i = 0;
+        }
+      }
+
       if ((main_time % 10) == 6) {
-          host->switch_to();
           top->clk_i = 0;
       }
+
+      if ((main_time % 10) == 0) {
+        host->switch_to();
+      }
+
 
       top->eval();
       main_time++;
@@ -73,6 +103,10 @@ addr_t simmem_t::get_tohost_address() {
 
 addr_t simmem_t::get_fromhost_address() {
   return htif_t::fromhost_addr;
+}
+
+void simmem_t::flush_dcache() {
+  flush_req.push(true);
 }
 
 void simmem_t::idle()
@@ -92,8 +126,9 @@ void simmem_t::read_chunk(addr_t taddr, size_t len, void* vdst)
   taddr -= base;
 
   assert(len % chunk_align() == 0);
-  assert(taddr < width*depth);
-  assert(taddr+len <= width*depth);
+  if (taddr >= width*depth) {
+    return;
+  }
 
   uint8_t* dst = (uint8_t*)vdst;
   while(len)
@@ -112,11 +147,16 @@ void simmem_t::read_chunk(addr_t taddr, size_t len, void* vdst)
 
 void simmem_t::write_chunk(addr_t taddr, size_t len, const void* vsrc)
 {
+  if (taddr == fromhost_addr) {
+    flush_dcache();
+  }
+
   taddr -= base;
 
   assert(len % chunk_align() == 0);
-  assert(taddr < width*depth);
-  assert(taddr+len <= width*depth);
+  if (taddr >= width*depth) {
+    return;
+  }
 
   const uint8_t* src = (const uint8_t*)vsrc;
   while(len)

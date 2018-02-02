@@ -31,22 +31,33 @@
 #include <memory>
 #include <fesvr/context.h>
 #include <stdio.h>
+#include <queue>
 
 
 class simmem_t : public htif_t
 {
 public:
   simmem_t(int argc, char** argv, size_t b, size_t w, size_t d);
+  simmem_t(const std::vector<std::string>& args, size_t b, size_t w, size_t d);
+
+  void set_vcd (const char *vcd_file) { this->vcd_file = vcd_file; }
   int run();
   addr_t get_tohost_address();
   addr_t get_fromhost_address();
 
   vluint64_t main_time;       // Current simulation time
+
 private:
   size_t base;
   size_t width;
   size_t depth;
   std::map<addr_t,std::vector<char> > mem;
+
+  std::queue<bool> flush_req;
+  std::queue<bool> flushing;
+
+  void flush_dcache();
+  const char * vcd_file;
 
   void read_chunk(addr_t taddr, size_t len, void* dst);
   void write_chunk(addr_t taddr, size_t len, const void* src);
