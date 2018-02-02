@@ -98,9 +98,9 @@ int main(int argc, char **argv) {
   t = clock() - t;
 
   if (dump_perf) {
-    cout << "Elapsed Time: " << t*1.0/CLOCKS_PER_SEC << " seconds" << endl;
-    cout << "Cycles: " << htif->main_time/2.0 << endl;
-    cout << "Cycles/s: " << (htif->main_time*1.0)/(t*2.0/CLOCKS_PER_SEC) << endl;
+    fprintf(stderr, "Elapsed Time: %f seconds\n", t*1.0/CLOCKS_PER_SEC);
+    fprintf(stderr, "Cycles: %2.f \n", htif->main_time/10.0);
+    fprintf(stderr, "Cycles/s: %2.f\n", (htif->main_time*1.0)/(t*10.0/CLOCKS_PER_SEC));
   }
   exit(0);
 }
