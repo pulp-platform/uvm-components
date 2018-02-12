@@ -1,11 +1,11 @@
 add wave -noupdate -group core /core_tb/dut/*
 
-add wave -noupdate -group pcgen_stage /core_tb/dut/pcgen_stage_i/*
-add wave -noupdate -group pcgen_stage -group btb /core_tb/dut/pcgen_stage_i/btb_i/*
-
-add wave -noupdate -group if_stage -group fetch_fifo /core_tb/dut/if_stage_i/i_fetch_fifo/*
-add wave -noupdate -group if_stage -group address_fifo /core_tb/dut/if_stage_i/i_fifo/*
-add wave -noupdate -group if_stage /core_tb/dut/if_stage_i/*
+add wave -noupdate -group frontend /core_tb/dut/i_frontend/*
+add wave -noupdate -group frontend -group icache /core_tb/dut/i_frontend/i_icache/*
+add wave -noupdate -group frontend -group ras /core_tb/dut/i_frontend/i_ras/*
+add wave -noupdate -group frontend -group btb /core_tb/dut/i_frontend/i_btb/*
+add wave -noupdate -group frontend -group bht /core_tb/dut/i_frontend/i_bht/*
+add wave -noupdate -group frontend -group instr_scan /core_tb/dut/i_frontend/i_instr_scan/*
 
 add wave -noupdate -group id_stage -group decoder /core_tb/dut/id_stage_i/decoder_i/*
 add wave -noupdate -group id_stage -group compressed_decoder /core_tb/dut/id_stage_i/compressed_decoder_i/*
