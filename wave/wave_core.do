@@ -6,6 +6,7 @@ add wave -noupdate -group frontend -group ras /core_tb/dut/i_frontend/i_ras/*
 add wave -noupdate -group frontend -group btb /core_tb/dut/i_frontend/i_btb/*
 add wave -noupdate -group frontend -group bht /core_tb/dut/i_frontend/i_bht/*
 add wave -noupdate -group frontend -group instr_scan /core_tb/dut/i_frontend/i_instr_scan/*
+add wave -noupdate -group frontend -group fetch_fifo /core_tb/dut/i_frontend/i_fetch_fifo/*
 
 add wave -noupdate -group id_stage -group decoder /core_tb/dut/id_stage_i/decoder_i/*
 add wave -noupdate -group id_stage -group compressed_decoder /core_tb/dut/id_stage_i/compressed_decoder_i/*
@@ -25,9 +26,9 @@ add wave -noupdate -group ex_stage -group mult -group ff1 /core_tb/dut/ex_stage_
 add wave -noupdate -group ex_stage -group lsu /core_tb/dut/ex_stage_i/lsu_i/*
 add wave -noupdate -group ex_stage -group lsu  -group lsu_bypass /core_tb/dut/ex_stage_i/lsu_i/lsu_bypass_i/*
 add wave -noupdate -group ex_stage -group lsu -group mmu /core_tb/dut/ex_stage_i/lsu_i/i_mmu/*
-add wave -noupdate -group ex_stage -group lsu -group mmu -group itlb /core_tb/dut/ex_stage_i/lsu_i/i_mmu/itlb_i/*
-add wave -noupdate -group ex_stage -group lsu -group mmu -group dtlb /core_tb/dut/ex_stage_i/lsu_i/i_mmu/dtlb_i/*
-add wave -noupdate -group ex_stage -group lsu -group mmu -group ptw /core_tb/dut/ex_stage_i/lsu_i/i_mmu/ptw_i/*
+add wave -noupdate -group ex_stage -group lsu -group mmu -group itlb /core_tb/dut/ex_stage_i/lsu_i/i_mmu/i_itlb/*
+add wave -noupdate -group ex_stage -group lsu -group mmu -group dtlb /core_tb/dut/ex_stage_i/lsu_i/i_mmu/i_dtlb/*
+add wave -noupdate -group ex_stage -group lsu -group mmu -group ptw /core_tb/dut/ex_stage_i/lsu_i/i_mmu/i_ptw/*
 
 add wave -noupdate -group ex_stage -group lsu -group store_unit /core_tb/dut/ex_stage_i/lsu_i/i_store_unit/*
 add wave -noupdate -group ex_stage -group lsu -group store_unit -group store_buffer /core_tb/dut/ex_stage_i/lsu_i/i_store_unit/store_buffer_i/*
@@ -65,6 +66,3 @@ add wave -noupdate -group nbdcache -group load {/core_tb/dut/ex_stage_i/lsu_i/i_
 add wave -noupdate -group nbdcache -group store {/core_tb/dut/ex_stage_i/lsu_i/i_nbdcache/master_ports[2]/i_cache_ctrl/*}
 
 add wave -noupdate -group perf_counters {/core_tb/dut/i_perf_counters/*}
-
-add wave -noupdate -group icache {/core_tb/dut/i_icache/*}
-add wave -noupdate -group icache_ctrl {/core_tb/dut/i_icache/i_icache_controller_private/*}

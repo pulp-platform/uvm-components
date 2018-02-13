@@ -42,13 +42,16 @@ void simmem_t::main() {
       tfp->open (this->vcd_file);
     }
 
+    if (this->label != NULL) {
+        fprintf(stderr, "%s\n", label);
+    }
+
     top->core_id_i = 0;
     top->cluster_id_i = 0;
     top->rst_ni = 0;
     top->fetch_enable_i = 0;
     top->boot_addr_i = 0x80000000;
     top->flush_req_i = 0;
-
 
     while (!Verilated::gotFinish()) {
 

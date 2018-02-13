@@ -41,6 +41,7 @@ public:
   simmem_t(const std::vector<std::string>& args, size_t b, size_t w, size_t d);
 
   void set_vcd (const char *vcd_file) { this->vcd_file = vcd_file; }
+  void set_label (const char *label) { this->label = label; }
   int run();
   addr_t get_tohost_address();
   addr_t get_fromhost_address();
@@ -58,6 +59,7 @@ private:
 
   void flush_dcache();
   const char * vcd_file;
+  const char * label;
 
   void read_chunk(addr_t taddr, size_t len, void* dst);
   void write_chunk(addr_t taddr, size_t len, const void* src);

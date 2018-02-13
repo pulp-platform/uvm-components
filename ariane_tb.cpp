@@ -59,7 +59,9 @@ static void help()
   fprintf(stderr, "usage: ariane C verilator simulator [host options] <target program> [target options]\n");
   fprintf(stderr, "Host Options:\n");
   fprintf(stderr, "  --vcd=<file>              Dump VCD trace to file\n");
+  fprintf(stderr, "  --label=<label>           Pass a label to the program\n");
   fprintf(stderr, "  -p                        Show simulation performance counters\n");
+  fprintf(stderr, "  -v                        Verbose\n");
   exit(1);
 }
 
@@ -73,14 +75,16 @@ double sc_time_stamp () {       // Called by $time in Verilog
 
 int main(int argc, char **argv) {
 
-  const char* vcd_file = NULL;
-  bool dump_perf = false;
+  const char *vcd_file = NULL, *label = NULL;
+  bool dump_perf = false, verbose= false;
 
   option_parser_t parser;
   parser.help(&help);
   parser.option('h', 0, 0, [&](const char* s){help();});
   parser.option('p', 0, 0, [&](const char* s){dump_perf = true;});
+  parser.option('v', 0, 0, [&](const char* s){verbose = true;});
   parser.option(0, "vcd", 1, [&](const char* s){vcd_file = s;});
+  parser.option(0, "label", 1, [&](const char* s){label = s;});
 
   auto argv1 = parser.parse(argv);
   std::vector<std::string> htif_args(argv1, (const char*const*)argv + argc);
@@ -88,6 +92,7 @@ int main(int argc, char **argv) {
   htif.reset(new simmem_t(htif_args, 0x80000000, 8, 2097152));
 
   htif->set_vcd(vcd_file);
+  htif->set_label(label);
   htif->start();
 
   clock_t t;
