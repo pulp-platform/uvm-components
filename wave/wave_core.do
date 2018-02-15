@@ -5,7 +5,7 @@ add wave -noupdate -group frontend -group icache /core_tb/dut/i_frontend/i_icach
 add wave -noupdate -group frontend -group ras /core_tb/dut/i_frontend/i_ras/*
 add wave -noupdate -group frontend -group btb /core_tb/dut/i_frontend/i_btb/*
 add wave -noupdate -group frontend -group bht /core_tb/dut/i_frontend/i_bht/*
-add wave -noupdate -group frontend -group instr_scan /core_tb/dut/i_frontend/i_instr_scan/*
+# add wave -noupdate -group frontend -group instr_scan /core_tb/dut/i_frontend/*i_instr_scan/*
 add wave -noupdate -group frontend -group fetch_fifo /core_tb/dut/i_frontend/i_fetch_fifo/*
 
 add wave -noupdate -group id_stage -group decoder /core_tb/dut/id_stage_i/decoder_i/*
@@ -13,8 +13,9 @@ add wave -noupdate -group id_stage -group compressed_decoder /core_tb/dut/id_sta
 add wave -noupdate -group id_stage -group instr_realigner /core_tb/dut/id_stage_i/instr_realigner_i/*
 add wave -noupdate -group id_stage /core_tb/dut/id_stage_i/*
 
-add wave -noupdate -group issue_stage -group scoreboard /core_tb/dut/issue_stage_i/scoreboard_i/*
-add wave -noupdate -group issue_stage -group issue_read_operands /core_tb/dut/issue_stage_i/issue_read_operands_i/*
+add wave -noupdate -group issue_stage -group scoreboard /core_tb/dut/issue_stage_i/i_scoreboard/*
+add wave -noupdate -group issue_stage -group issue_read_operands /core_tb/dut/issue_stage_i/i_issue_read_operands/*
+add wave -noupdate -group issue_stage -group rename /core_tb/dut/issue_stage_i/i_re_name/*
 add wave -noupdate -group issue_stage /core_tb/dut/issue_stage_i/*
 
 add wave -noupdate -group ex_stage -group alu /core_tb/dut/ex_stage_i/alu_i/*
