@@ -208,17 +208,17 @@ module kerbin_tb;
     assign load_unit.data_gnt      = dut.uncore_i.coreplex_i.ariane_i.ex_stage_i.lsu_i.i_load_unit.data_gnt_i;
 
     // connect ptw interface
-    assign ptw.address_index = dut.uncore_i.coreplex_i.ariane_i.ex_stage_i.lsu_i.i_mmu.ptw_i.address_index_o;
-    assign ptw.address_tag   = dut.uncore_i.coreplex_i.ariane_i.ex_stage_i.lsu_i.i_mmu.ptw_i.address_tag_o;
-    assign ptw.data_wdata    = dut.uncore_i.coreplex_i.ariane_i.ex_stage_i.lsu_i.i_mmu.ptw_i.data_wdata_o;
-    assign ptw.data_we       = dut.uncore_i.coreplex_i.ariane_i.ex_stage_i.lsu_i.i_mmu.ptw_i.data_we_o;
-    assign ptw.data_req      = dut.uncore_i.coreplex_i.ariane_i.ex_stage_i.lsu_i.i_mmu.ptw_i.data_req_o;
-    assign ptw.tag_valid     = dut.uncore_i.coreplex_i.ariane_i.ex_stage_i.lsu_i.i_mmu.ptw_i.tag_valid_o;
-    assign ptw.data_be       = dut.uncore_i.coreplex_i.ariane_i.ex_stage_i.lsu_i.i_mmu.ptw_i.data_be_o;
-    assign ptw.kill_req      = dut.uncore_i.coreplex_i.ariane_i.ex_stage_i.lsu_i.i_mmu.ptw_i.kill_req_o;
-    assign ptw.data_rvalid   = dut.uncore_i.coreplex_i.ariane_i.ex_stage_i.lsu_i.i_mmu.ptw_i.data_rvalid_i;
-    assign ptw.data_rdata    = dut.uncore_i.coreplex_i.ariane_i.ex_stage_i.lsu_i.i_mmu.ptw_i.data_rdata_i;
-    assign ptw.data_gnt      = dut.uncore_i.coreplex_i.ariane_i.ex_stage_i.lsu_i.i_mmu.ptw_i.data_gnt_i;
+    assign ptw.address_index = dut.uncore_i.coreplex_i.ariane_i.ex_stage_i.lsu_i.i_mmu.i_ptw.address_index_o;
+    assign ptw.address_tag   = dut.uncore_i.coreplex_i.ariane_i.ex_stage_i.lsu_i.i_mmu.i_ptw.address_tag_o;
+    assign ptw.data_wdata    = dut.uncore_i.coreplex_i.ariane_i.ex_stage_i.lsu_i.i_mmu.i_ptw.data_wdata_o;
+    assign ptw.data_we       = dut.uncore_i.coreplex_i.ariane_i.ex_stage_i.lsu_i.i_mmu.i_ptw.data_we_o;
+    assign ptw.data_req      = dut.uncore_i.coreplex_i.ariane_i.ex_stage_i.lsu_i.i_mmu.i_ptw.data_req_o;
+    assign ptw.tag_valid     = dut.uncore_i.coreplex_i.ariane_i.ex_stage_i.lsu_i.i_mmu.i_ptw.tag_valid_o;
+    assign ptw.data_be       = dut.uncore_i.coreplex_i.ariane_i.ex_stage_i.lsu_i.i_mmu.i_ptw.data_be_o;
+    assign ptw.kill_req      = dut.uncore_i.coreplex_i.ariane_i.ex_stage_i.lsu_i.i_mmu.i_ptw.kill_req_o;
+    assign ptw.data_rvalid   = dut.uncore_i.coreplex_i.ariane_i.ex_stage_i.lsu_i.i_mmu.i_ptw.data_rvalid_i;
+    assign ptw.data_rdata    = dut.uncore_i.coreplex_i.ariane_i.ex_stage_i.lsu_i.i_mmu.i_ptw.data_rdata_i;
+    assign ptw.data_gnt      = dut.uncore_i.coreplex_i.ariane_i.ex_stage_i.lsu_i.i_mmu.i_ptw.data_gnt_i;
 
     // ------------------
     // Clocking Process
