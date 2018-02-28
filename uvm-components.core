@@ -1,0 +1,22 @@
+CAPI=2:
+name : pulp-platform::uvm-components:0
+
+filesets:
+  axi_if:
+    files:
+      - agents/axi_if/axi_if.sv : {file_type : systemVerilogSource}
+  verilator_tb:
+    files:
+      - ariane_tb.cpp : {file_type : cppSource}
+  simmem:
+    files:
+      - simmem.cpp
+      - simmem.h : {is_include_file : true}
+    file_type : cppSource
+      
+targets:
+  default:
+    filesets:
+      - axi_if
+      - simmem
+      - tool_verilator? (verilator_tb)
