@@ -98,6 +98,10 @@ void simmem_t::main() {
       main_time++;
 
     }
+
+    if (this->vcd_file != NULL) {
+      tfp->close ();
+    }
 }
 
 addr_t simmem_t::get_tohost_address() {
