@@ -12,30 +12,19 @@
 // Date: 12.07.2017
 // Description: Boot ROM, similar to Spike
 
-module boot_rom (
-    input  logic        clk_i,
-    input  logic        rst_ni,
-    input  logic [63:0] address_i,
-    output logic [63:0] data_o // combinatorial output
+module boot_rom #(
+    parameter int unsigned DATA_WIDTH = 64
+)(
+    input  logic                  clk_i,
+    input  logic                  rst_ni,
+    input  logic [63:0]           address_i,
+    output logic [DATA_WIDTH-1:0] data_o // combinatorial output
 );
 
-    always_comb begin
+    localparam BYTE_OFFSET = $clog2(DATA_WIDTH/8);
 
-        data_o = 64'hx;
-        // auipc   t0, 0x0
-        // addi    a1, t0, 32
-        // csrr    a0, mhartid
-        // ld      t0, 24(t0)
-        // jr      t0
-        case (address_i & (~3'h7))
-            64'h1000: data_o = 64'h00a2a02345056291;
-            64'h1008: data_o = 64'h0202859302fe4285;
-            64'h1010: data_o = 64'h00028067f1402573;
-            64'h1018: data_o = 64'h0000000000000000;
-            // device tree
-            default: begin
-                data_o = 64'hx; //fdt[fdt_address[63:3]];
-            end
-        endcase
-    end
+    logic [31:0][7:0] mem;
+    assign mem = 256'h0000000000000000_00028067f1402573_0202859302fe4285_00a2a02345056291;
+    assign data_o = mem[address_i[5:BYTE_OFFSET]+:DATA_WIDTH/8];
+
 endmodule

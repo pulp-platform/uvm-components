@@ -12,12 +12,12 @@
 // Date: 31.10.2017
 // Description: Determines end of computation
 
-class dcache_scoreboard extends uvm_scoreboard;
+class dcache_scoreboard #(int DATA_WIDTH = 64) extends uvm_scoreboard;
 
     // UVM Factory Registration Macro
-    `uvm_component_utils(dcache_scoreboard)
+    `uvm_component_param_utils(dcache_scoreboard#(DATA_WIDTH))
 
-    core_test_util ctu;
+    core_test_util #(DATA_WIDTH) ctu;
     string sig_dump_name;
     string base_dir;
     longint unsigned begin_signature;
@@ -27,9 +27,9 @@ class dcache_scoreboard extends uvm_scoreboard;
     // Methods
     //------------------------------------------
     // analysis port
-    uvm_analysis_imp #(mem_if_seq_item, dcache_scoreboard) store_export;
-    uvm_analysis_imp #(dcache_if_seq_item, dcache_scoreboard) load_export;
-    uvm_analysis_imp #(dcache_if_seq_item, dcache_scoreboard) ptw_export;
+    uvm_analysis_imp #(mem_if_seq_item, dcache_scoreboard#(DATA_WIDTH)) store_export;
+    uvm_analysis_imp #(dcache_if_seq_item, dcache_scoreboard#(DATA_WIDTH)) load_export;
+    uvm_analysis_imp #(dcache_if_seq_item, dcache_scoreboard#(DATA_WIDTH)) ptw_export;
 
     // get the command line processor for parsing the plus args
     static uvm_cmdline_processor uvcl = uvm_cmdline_processor::get_inst();
@@ -43,7 +43,7 @@ class dcache_scoreboard extends uvm_scoreboard;
 
          void'(uvcl.get_arg_value("+BASEDIR=", base_dir));
 
-        if (!uvm_config_db #(core_test_util)::get(this, "", "memory_file", ctu))
+        if (!uvm_config_db #(core_test_util#(DATA_WIDTH))::get(this, "", "memory_file", ctu))
             `uvm_fatal("DCache Scoreboard", "Cannot get path to pre-load file")
 
         this.ctu = ctu;

@@ -13,10 +13,10 @@
 // Description: Environment which instantiates the agent and all environment
 //              related components such as a scoreboard etc.
 
-class core_env extends uvm_env;
+class core_env #(int DATA_WIDTH = 64) extends uvm_env;
 
     // UVM Factory Registration Macro
-    `uvm_component_utils(core_env)
+    `uvm_component_param_utils(core_env#(DATA_WIDTH))
 
     //------------------------------------------
     // Data Members
@@ -30,7 +30,7 @@ class core_env extends uvm_env;
     core_env_config m_cfg;
 
     core_eoc m_eoc;
-    dcache_scoreboard m_dcache_scoreboard;
+    dcache_scoreboard #(DATA_WIDTH) m_dcache_scoreboard;
     //------------------------------------------
     // Methods
     //------------------------------------------
@@ -75,7 +75,7 @@ class core_env extends uvm_env;
         m_core_if_sequencer = core_if_sequencer::type_id::create("m_core_if_sequencer", this);
 
         m_eoc  = core_eoc::type_id::create("m_eoc", this);
-        m_dcache_scoreboard = dcache_scoreboard::type_id::create("m_dcache_scoreboard", this);
+        m_dcache_scoreboard = dcache_scoreboard#(DATA_WIDTH)::type_id::create("m_dcache_scoreboard", this);
     endfunction:build_phase
 
     function void connect_phase(uvm_phase phase);

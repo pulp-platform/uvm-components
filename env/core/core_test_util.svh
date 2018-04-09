@@ -11,19 +11,19 @@
 // Author: Florian Zaruba <zarubaf@iis.ee.ethz.ch>
 // Description: Test utilities for stand-alone core test
 
-class core_test_util extends uvm_object; /* base class*/;
+class core_test_util #(int DATA_WIDTH = 64) extends uvm_object; /* base class*/;
+/*-------------------------------------------------------------------------------
+-- UVM Factory register
+-------------------------------------------------------------------------------*/
+    // Provide implementations of virtual methods such as get_type_name and create
+    `uvm_object_param_utils(core_test_util#(DATA_WIDTH))
 
 /*-------------------------------------------------------------------------------
 -- Interface, port, fields
 -------------------------------------------------------------------------------*/
 
-    logic [63:0] rmem [2**21];
+    logic [DATA_WIDTH-1:0] rmem [2**21];
     string file;
-/*-------------------------------------------------------------------------------
--- UVM Factory register
--------------------------------------------------------------------------------*/
-    // Provide implementations of virtual methods such as get_type_name and create
-    `uvm_object_utils(core_test_util)
 
 /*-------------------------------------------------------------------------------
 -- Functions

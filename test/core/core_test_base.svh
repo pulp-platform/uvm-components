@@ -12,10 +12,10 @@
 // Date: 08.05.2017
 // Description: core base test class
 
-class core_test_base extends uvm_test;
+class core_test_base #(int DATA_WIDTH = 64) extends uvm_test;
 
     // UVM Factory Registration Macro
-    `uvm_component_utils(core_test_base)
+    `uvm_component_param_utils(core_test_base#(DATA_WIDTH))
 
     //------------------------------------------
     // Data Members
@@ -27,7 +27,7 @@ class core_test_base extends uvm_test;
     // environment configuration
     core_env_config m_env_cfg;
     // environment
-    core_env m_env;
+    core_env #(DATA_WIDTH) m_env;
     core_if_sequencer sequencer_h;
 
     core_sequence m_core_sequence;
@@ -95,7 +95,7 @@ class core_test_base extends uvm_test;
 
         // create environment
         uvm_config_db #(core_env_config)::set(this, "*", "core_env_config", m_env_cfg);
-        m_env = core_env::type_id::create("m_env", this);
+        m_env = core_env#(DATA_WIDTH)::type_id::create("m_env", this);
 
     endfunction
 

@@ -13,33 +13,32 @@
 // Description: Load Store Unit, handles address calculation and memory interface signals
 
 module core_mem #(
-        parameter logic [63:0] DRAM_BASE = 64'h80000000
+        parameter logic [63:0] DRAM_BASE  = 64'h80000000,
+        parameter int unsigned DATA_WIDTH = 64
     )(
     input logic                      clk_i,   // Clock
     input logic                      rst_ni,  // Asynchronous reset active low
     // Data memory/cache
     input  logic [63:0]              data_if_address_i,
     input  logic                     data_if_data_req_i,
-    input  logic [7:0]               data_if_data_be_i,
+    input  logic [DATA_WIDTH/8-1:0]  data_if_data_be_i,
     output logic                     data_if_data_rvalid_o,
-    output logic [63:0]              data_if_data_rdata_o,
-    input  logic [63:0]              data_if_data_wdata_i,
+    output logic [DATA_WIDTH-1:0]    data_if_data_rdata_o,
+    input  logic [DATA_WIDTH-1:0]    data_if_data_wdata_i,
     input  logic                     data_if_data_we_i
 );
     // we always grant the access
     localparam ADDRESS_WIDTH = 24;
-
-    logic [63:0] fetch_data_ram, fetch_data_rom;
-
+    localparam BYTE_OFFSET = $clog2(DATA_WIDTH/8);
     logic [63:0] data_address_q;
-    logic [63:0] data_ram, data_rom;
+    logic [DATA_WIDTH-1:0] data_ram, data_rom;
 
     // look at the address of the previous cycle to determine what to return
     assign data_if_data_rdata_o = (data_address_q >= DRAM_BASE) ? data_ram : data_rom;
 
     dp_ram  #(
         .ADDR_WIDTH    ( ADDRESS_WIDTH                                      ),
-        .DATA_WIDTH    ( 64                                                 )
+        .DATA_WIDTH    ( DATA_WIDTH                                         )
     ) ram_i (
         .clk           ( clk_i                                              ),
         .en_a_i        ( 1'b0                                               ),
@@ -50,14 +49,16 @@ module core_mem #(
         .be_a_i        (                                                    ),
         // data RAM
         .en_b_i        ( data_if_data_req_i                                 ),
-        .addr_b_i      ( data_if_address_i[ADDRESS_WIDTH-1+3:3]             ),
-        .wdata_b_i     ( data_if_data_wdata_i                               ),
-        .rdata_b_o     ( data_ram                                           ),
+        .addr_b_i      ( data_if_address_i[ADDRESS_WIDTH+BYTE_OFFSET-1:BYTE_OFFSET]    ),
+        .wdata_b_i     ( data_if_data_wdata_i                                          ),
+        .rdata_b_o     ( data_ram                                                      ),
         .we_b_i        ( ((data_if_address_i >= DRAM_BASE) ? data_if_data_we_i : 1'b0) ),
-        .be_b_i        ( data_if_data_be_i                                  )
+        .be_b_i        ( data_if_data_be_i                                             )
     );
 
-    boot_rom data_boot_rom_i (
+    boot_rom #(
+        .DATA_WIDTH    ( DATA_WIDTH               )
+    ) data_boot_rom_i (
         .clk_i     ( clk_i                        ),
         .rst_ni    ( rst_ni                       ),
         .address_i ( data_address_q               ),

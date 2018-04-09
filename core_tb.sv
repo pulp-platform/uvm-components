@@ -34,6 +34,7 @@ module core_tb;
     static uvm_cmdline_processor uvcl = uvm_cmdline_processor::get_inst();
 
     localparam int unsigned CLOCK_PERIOD = 20ns;
+    localparam int unsigned DATA_WIDTH = 256;
 
     logic clk_i;
     logic rst_ni;
@@ -50,67 +51,69 @@ module core_tb;
     dcache_if load_unit (clk_i);
     mem_if store_unit (clk_i);
 
-    logic [63:0] instr_if_address;
-    logic        instr_if_data_req;
-    logic        instr_if_data_gnt;
-    logic        instr_if_data_rvalid;
-    logic [63:0] instr_if_data_rdata;
+    logic [63:0]           instr_if_address;
+    logic                  instr_if_data_req;
+    logic                  instr_if_data_gnt;
+    logic                  instr_if_data_rvalid;
+    logic [DATA_WIDTH-1:0] instr_if_data_rdata;
 
-    logic [63:0] data_if_data_address_i;
-    logic [63:0] data_if_data_wdata_i;
-    logic        data_if_data_req_i;
-    logic        data_if_data_we_i;
-    logic [7:0]  data_if_data_be_i;
-    logic        data_if_data_gnt_o;
-    logic        data_if_data_rvalid_o;
-    logic [63:0] data_if_data_rdata_o;
+    logic [63:0]             data_if_data_address_i;
+    logic [DATA_WIDTH-1:0]   data_if_data_wdata_i;
+    logic                    data_if_data_req_i;
+    logic                    data_if_data_we_i;
+    logic [DATA_WIDTH/8-1:0] data_if_data_be_i;
+    logic                    data_if_data_gnt_o;
+    logic                    data_if_data_rvalid_o;
+    logic [DATA_WIDTH-1:0]   data_if_data_rdata_o;
 
-    core_mem core_mem_i (
-        .clk_i                   ( clk_i                        ),
-        .rst_ni                  ( rst_ni                       ),
+    core_mem  #(
+        .DATA_WIDTH ( DATA_WIDTH )
+    ) core_mem_i (
+        .clk_i                   ( clk_i                  ),
+        .rst_ni                  ( rst_ni                 ),
 
-        .data_if_address_i       ( data_if_data_address_i       ),
-        .data_if_data_wdata_i    ( data_if_data_wdata_i         ),
-        .data_if_data_req_i      ( data_if_data_req_i           ),
-        .data_if_data_we_i       ( data_if_data_we_i            ),
-        .data_if_data_be_i       ( data_if_data_be_i            ),
-        .data_if_data_rvalid_o   ( data_if_data_rvalid_o        ),
-        .data_if_data_rdata_o    ( data_if_data_rdata_o         )
+        .data_if_address_i       ( data_if_data_address_i ),
+        .data_if_data_wdata_i    ( data_if_data_wdata_i   ),
+        .data_if_data_req_i      ( data_if_data_req_i     ),
+        .data_if_data_we_i       ( data_if_data_we_i      ),
+        .data_if_data_be_i       ( data_if_data_be_i      ),
+        .data_if_data_rvalid_o   ( data_if_data_rvalid_o  ),
+        .data_if_data_rdata_o    ( data_if_data_rdata_o   )
     );
 
     AXI_BUS #(
-        .AXI_ADDR_WIDTH ( 64 ),
-        .AXI_DATA_WIDTH ( 64 ),
-        .AXI_ID_WIDTH   ( 10 ),
-        .AXI_USER_WIDTH ( 1  )
+        .AXI_ADDR_WIDTH ( 64         ),
+        .AXI_DATA_WIDTH ( DATA_WIDTH ),
+        .AXI_ID_WIDTH   ( 10         ),
+        .AXI_USER_WIDTH ( 1          )
     ) data_if();
 
     AXI_BUS #(
-        .AXI_ADDR_WIDTH ( 64 ),
-        .AXI_DATA_WIDTH ( 64 ),
-        .AXI_ID_WIDTH   ( 10 ),
-        .AXI_USER_WIDTH ( 1  )
+        .AXI_ADDR_WIDTH ( 64         ),
+        .AXI_DATA_WIDTH ( DATA_WIDTH ),
+        .AXI_ID_WIDTH   ( 10         ),
+        .AXI_USER_WIDTH ( 1          )
     ) bypass_if();
 
     AXI_BUS #(
-        .AXI_ADDR_WIDTH ( 64 ),
-        .AXI_DATA_WIDTH ( 64 ),
-        .AXI_ID_WIDTH   ( 10 ),
-        .AXI_USER_WIDTH ( 1  )
+        .AXI_ADDR_WIDTH ( 64         ),
+        .AXI_DATA_WIDTH ( DATA_WIDTH ),
+        .AXI_ID_WIDTH   ( 10         ),
+        .AXI_USER_WIDTH ( 1          )
     ) instr_if();
 
     AXI_BUS #(
-        .AXI_ADDR_WIDTH ( 64 ),
-        .AXI_DATA_WIDTH ( 64 ),
-        .AXI_ID_WIDTH   ( 12 ),
-        .AXI_USER_WIDTH ( 1  )
+        .AXI_ADDR_WIDTH ( 64         ),
+        .AXI_DATA_WIDTH ( DATA_WIDTH ),
+        .AXI_ID_WIDTH   ( 12         ),
+        .AXI_USER_WIDTH ( 1          )
     ) axi2per();
 
     axi2mem #(
-        .AXI_ID_WIDTH   (12),
-        .AXI_ADDR_WIDTH (64),
-        .AXI_DATA_WIDTH (64),
-        .AXI_USER_WIDTH (1)
+        .AXI_ID_WIDTH   ( 12         ),
+        .AXI_ADDR_WIDTH ( 64         ),
+        .AXI_DATA_WIDTH ( DATA_WIDTH ),
+        .AXI_USER_WIDTH ( 1          )
     ) i_axi2mem (
         .slave   ( axi2per                ),
         .req_o   ( data_if_data_req_i     ),
@@ -126,7 +129,7 @@ module core_tb;
         .NB_MASTER      ( 1            ),
         .NB_SLAVE       ( 3            ),
         .AXI_ADDR_WIDTH ( 64           ),
-        .AXI_DATA_WIDTH ( 64           ),
+        .AXI_DATA_WIDTH ( DATA_WIDTH   ),
         .AXI_ID_WIDTH   ( 10           ),
         .AXI_USER_WIDTH ( 1            )
     ) i_axi_node (
@@ -135,11 +138,13 @@ module core_tb;
         .test_en_i      ( 1'b0                            ),
         .slave          ( '{bypass_if, data_if, instr_if} ),
         .master         ( '{axi2per}                      ),
-        .start_addr_i   ( {64'h0}                         ),
-        .end_addr_i     ( {64'hFFFF_FFFF_FFFF_FFFF}       )
+        .start_addr_i   ( '0                              ),
+        .end_addr_i     ( '1                              )
     );
 
-    ariane dut (
+    ariane #(
+        .AXI_DATA_WIDTH ( DATA_WIDTH )
+    ) dut (
         .clk_i                   ( clk_i                        ),
         .rst_ni                  ( rst_ni                       ),
         .time_i                  ( time_i                       ),
@@ -243,11 +248,13 @@ module core_tb;
         longint unsigned tohost_address;
         string max_cycle_string;
         string file;
-        core_test_util ctu;
+        core_test_util #(DATA_WIDTH) ctu;
+
+        typedef core_test #(DATA_WIDTH) core_test;
 
         initial begin
 
-            ctu = core_test_util::type_id::create("core_test_util");
+            ctu = core_test_util#(DATA_WIDTH)::type_id::create("core_test_util");
             file = ctu.get_file_name();
             void'(ctu.preload_memories(file));
 
@@ -271,7 +278,7 @@ module core_tb;
             uvm_config_db #(longint unsigned)::set(null, "uvm_test_top.m_env.m_eoc", "tohost", tohost_address);
             uvm_config_db #(longint unsigned)::set(null, "uvm_test_top.m_env.m_dcache_scoreboard", "dram_base", `DRAM_BASE);
             uvm_config_db #(longint unsigned)::set(null, "uvm_test_top.m_env.m_dcache_scoreboard", "begin_signature", ((begin_signature_address -`DRAM_BASE) >> 3));
-            uvm_config_db #(core_test_util)::set(null, "uvm_test_top.m_env.m_dcache_scoreboard", "memory_file", ctu);
+            uvm_config_db #(core_test_util#(DATA_WIDTH))::set(null, "uvm_test_top.m_env.m_dcache_scoreboard", "memory_file", ctu);
             // print the topology
             // uvm_top.enable_print_topology = 1;
             // get the maximum cycle count the simulation is allowed to run
@@ -280,6 +287,7 @@ module core_tb;
             end else begin
                 max_cycles = max_cycle_string.atoi();
             end
+
             // Start UVM test
             run_test();
         end

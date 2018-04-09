@@ -12,27 +12,31 @@
 // Date: 08.05.2017
 // Description: core main test class
 
-class core_test extends core_test_base;
-    // UVM Factory Registration Macro
-    `uvm_component_utils(core_test)
-    // core_sequence core;
-    //------------------------------------------
-    // Methods
-    //------------------------------------------
-    // analysis port
-    core_eoc m_eoc;
-    // Standard UVM Methods:
-    function new(string name = "core_test", uvm_component parent = null);
-        super.new(name, parent);
-    endfunction
+class core_test#(int DATA_WIDTH = 64) extends core_test_base #(DATA_WIDTH);
 
-    function void build_phase(uvm_phase phase);
-        super.build_phase(phase);
-    endfunction
+   typedef  uvm_component_registry #(core_test#(DATA_WIDTH),"core_test") type_id;
 
-    task run_phase(uvm_phase phase);
-        super.run_phase(phase);
-    endtask
+   static function type_id get_type();
+     return type_id::get();
+   endfunction
+
+   virtual function uvm_object_wrapper get_object_type();
+     return type_id::get();
+   endfunction
+
+   function new(string name = "core_test", uvm_component parent = null);
+      super.new(name,parent);
+   endfunction
+
+   function void build_phase(uvm_phase phase);
+      super.build_phase(phase);
+   endfunction
+
+   virtual task run_phase(uvm_phase phase);
+      phase.raise_objection(this);
+      `uvm_info(get_type_name(),$sformatf("DATA_WIDTH = %d",DATA_WIDTH),UVM_LOW)
+      phase.drop_objection(this);
+   endtask
 
 
 endclass : core_test
