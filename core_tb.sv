@@ -130,13 +130,13 @@ module core_tb;
         .AXI_ID_WIDTH   ( 10           ),
         .AXI_USER_WIDTH ( 1            )
     ) i_axi_node (
-        .clk            ( clk_i                          ),
-        .rst_n          ( rst_ni                         ),
-        .test_en_i      ( 1'b0                           ),
-        .slave          ( {bypass_if, data_if, instr_if} ),
-        .master         ( {axi2per}                      ),
-        .start_addr_i   ( {64'h0}                        ),
-        .end_addr_i     ( {64'hFFFF_FFFF_FFFF_FFFF}      )
+        .clk            ( clk_i                           ),
+        .rst_n          ( rst_ni                          ),
+        .test_en_i      ( 1'b0                            ),
+        .slave          ( '{bypass_if, data_if, instr_if} ),
+        .master         ( '{axi2per}                      ),
+        .start_addr_i   ( {64'h0}                         ),
+        .end_addr_i     ( {64'hFFFF_FFFF_FFFF_FFFF}       )
     );
 
     ariane dut (
