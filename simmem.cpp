@@ -49,7 +49,6 @@ void simmem_t::main() {
     top->core_id_i = 0;
     top->cluster_id_i = 0;
     top->rst_ni = 0;
-    top->fetch_enable_i = 0;
     top->boot_addr_i = 0x80000000;
     top->flush_req_i = 0;
 
@@ -61,7 +60,6 @@ void simmem_t::main() {
 
       if (main_time > 40) {
           top->rst_ni = 1; // de-assert reset
-          top->fetch_enable_i = 1;
       }
 
       if ((main_time % 10) == 0) {
