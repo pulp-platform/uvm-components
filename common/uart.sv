@@ -24,8 +24,6 @@ interface uart_bus
 
     input  logic rx_en
   );
-  timeunit      1ps;
-  timeprecision 1ps;
 
   localparam BIT_PERIOD = (1000000000/BAUD_RATE*1000);
 

@@ -19,8 +19,6 @@ import uvm_pkg::*;
 import core_lib_pkg::*;
 import core_env_pkg::core_test_util;
 
-`define DRAM_BASE 64'h40000000
-
 `include "uvm_macros.svh"
 
 module ariane_tb;
@@ -174,7 +172,7 @@ module ariane_tb;
             // end
             // Start UVM test
             // run_test();
-            wait (exit_o[0]);
+            // wait (exit_o[0]);
         end
     endprogram
 
