@@ -15,10 +15,10 @@
 // specific language governing permissions and limitations
 // under the License.
 
-#include "Variane_wrapped.h"
+#include "Variane_testharness.h"
 #include "verilated.h"
 #include "verilated_vcd_c.h"
-#include "Variane_wrapped__Dpi.h"
+#include "Variane_testharness__Dpi.h"
 
 #include <stdio.h>
 #include <fesvr/dtm.h>
@@ -50,7 +50,7 @@ int main(int argc, char **argv) {
   dtm = new dtm_t(argc, argv);
   signal(SIGTERM, handle_sigterm);
 
-  std::unique_ptr<Variane_wrapped> top(new Variane_wrapped);
+  std::unique_ptr<Variane_testharness> top(new Variane_testharness);
   std::unique_ptr<VerilatedVcdC> tfp(new VerilatedVcdC);
 
   if (vcd_file != NULL) {
