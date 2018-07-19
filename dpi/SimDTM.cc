@@ -24,6 +24,16 @@ extern "C" int debug_tick
     s_vpi_vlog_info info;
     if (!vpi_get_vlog_info(&info))
       abort();
+      // sanitize arguments
+      for (int i = 0; i < info.argc; i++) {
+        // remove any two double pluses at the beginning (those are target arguments)
+        if (info.argv[i][0] == '+' && info.argv[i][1] == '+' && strlen(info.argv[i]) > 3) {
+            for (int j = 0; j < strlen(info.argv[i]) - 1; j++) {
+              info.argv[i][j] = info.argv[i][j + 2];
+            }
+        }
+        // printf("Argument %d: %s\n", i, info.argv[i]);
+      }
 
       dtm = new dtm_t(info.argc, info.argv);
   }

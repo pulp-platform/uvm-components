@@ -44,7 +44,8 @@ double sc_time_stamp () {       // Called by $time in Verilog
 int main(int argc, char **argv) {
   int ret = 0;
 
-  const char *vcd_file = "new_debug.vcd";
+  // const char *vcd_file = "new_debug.vcd";
+  const char *vcd_file = NULL;
   Verilated::commandArgs(argc, argv);
 
   dtm = new dtm_t(argc, argv);
