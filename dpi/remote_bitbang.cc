@@ -20,7 +20,8 @@ remote_bitbang_t::remote_bitbang_t(uint16_t port) :
   socket_fd(0),
   client_fd(0),
   recv_start(0),
-  recv_end(0)
+  recv_end(0),
+  err(0)
 {
   socket_fd = socket(AF_INET, SOCK_STREAM, 0);
   if (socket_fd == -1) {
@@ -44,11 +45,11 @@ remote_bitbang_t::remote_bitbang_t(uint16_t port) :
   addr.sin_addr.s_addr = INADDR_ANY;
   addr.sin_port = htons(port);
 
-  bind(socket_fd, ((struct sockaddr *) &addr, sizeof(addr)));
-  //   fprintf(stderr, "remote_bitbang failed to bind socket: %s (%d)\n",
-  //           strerror(errno), errno);
-  //   abort();
-  // }
+  if (::bind(socket_fd, (struct sockaddr *) &addr, sizeof(addr)) == -1) {
+    fprintf(stderr, "remote_bitbang failed to bind socket: %s (%d)\n",
+            strerror(errno), errno);
+    abort();
+  }
 
   if (listen(socket_fd, 1) == -1) {
     fprintf(stderr, "remote_bitbang failed to listen on socket: %s (%d)\n",
@@ -69,10 +70,9 @@ remote_bitbang_t::remote_bitbang_t(uint16_t port) :
   trstn = 1;
   quit = 0;
 
-  printf ("This emulator compiled with JTAG Remote Bitbang client. To enable, use +jtag_rbb_enable=1.\n");
-  printf("Listening on port %d\n",
+  fprintf(stderr, "This emulator compiled with JTAG Remote Bitbang client. To enable, use +jtag_rbb_enable=1.\n");
+  fprintf(stderr, "Listening on port %d\n",
          ntohs(addr.sin_port));
-  fflush(stdout);
 }
 
 void remote_bitbang_t::accept()
@@ -140,7 +140,7 @@ void remote_bitbang_t::execute_command()
     if (num_read == -1) {
       if (errno == EAGAIN) {
         // We'll try again the next call.
-        fprintf(stderr, "Received no command. Will try again on the next call\n");
+        //fprintf(stderr, "Received no command. Will try again on the next call\n");
       } else {
         fprintf(stderr, "remote_bitbang failed to read on socket: %s (%d)\n",
                 strerror(errno), errno);
@@ -155,7 +155,7 @@ void remote_bitbang_t::execute_command()
     }
   }
 
-  fprintf(stderr, "Received a command %c\n", command);
+  //fprintf(stderr, "Received a command %c\n", command);
 
   int dosend = 0;
 
