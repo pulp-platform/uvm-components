@@ -23,8 +23,11 @@
 
 #include <stdio.h>
 #include <iostream>
+#include <iomanip>
 #include <string>
 #include <getopt.h>
+#include <chrono>
+#include <ctime>
 
 #include <fesvr/dtm.h>
 #include "remote_bitbang.h"
@@ -72,6 +75,7 @@ EMULATOR DEBUG OPTIONS (only supported in debug build -- try `make debug`)\n",
 #endif
   fputs("\
   -v, --vcd=FILE,          Write vcd trace to FILE (or '-' for stdout)\n\
+  -p,                      Print performance statistic at end of test\n\
 ", stdout);
   // fputs("\n" PLUSARG_USAGE_OPTIONS, stdout);
   fputs("\n" HTIF_USAGE_OPTIONS, stdout);
@@ -80,7 +84,7 @@ EMULATOR DEBUG OPTIONS (only supported in debug build -- try `make debug`)\n",
 "  - run a bare metal test:\n"
 "    %s $RISCV/riscv64-unknown-elf/share/riscv-tests/isa/rv64ui-p-add\n"
 "  - run a bare metal test showing cycle-by-cycle information:\n"
-"    %s spike-dasm < < trace_core_00_0.dasm > trace.out\n"
+"    %s spike-dasm < trace_core_00_0.dasm > trace.out\n"
 #if VM_TRACE
 "  - run a bare metal test to generate a VCD waveform:\n"
 "    %s -v rv64ui-p-add.vcd $RISCV/riscv64-unknown-elf/share/riscv-tests/isa/rv64ui-p-add\n"
@@ -95,7 +99,10 @@ EMULATOR DEBUG OPTIONS (only supported in debug build -- try `make debug`)\n",
 }
 
 int main(int argc, char **argv) {
+  std::clock_t c_start = std::clock();
+  auto t_start = std::chrono::high_resolution_clock::now();
   bool verbose;
+  bool perf;
   unsigned random_seed = (unsigned)time(NULL) ^ (unsigned)getpid();
   uint64_t max_cycles = -1;
   int ret = 0;
@@ -125,9 +132,9 @@ int main(int argc, char **argv) {
     };
     int option_index = 0;
 #if VM_TRACE
-    int c = getopt_long(argc, argv, "-chm:s:r:v:Vx:", long_options, &option_index);
+    int c = getopt_long(argc, argv, "-chpm:s:r:v:Vx:", long_options, &option_index);
 #else
-    int c = getopt_long(argc, argv, "-chm:s:r:V", long_options, &option_index);
+    int c = getopt_long(argc, argv, "-chpm:s:r:V", long_options, &option_index);
 #endif
     if (c == -1) break;
  retry:
@@ -140,6 +147,7 @@ int main(int argc, char **argv) {
       case 's': random_seed = atoi(optarg); break;
       case 'r': rbb_port = atoi(optarg);    break;
       case 'V': verbose = true;             break;
+      case 'p': perf = true;                break;
 #if VM_TRACE
       case 'v': {
         vcdfile = strcmp(optarg, "-") == 0 ? stdout : fopen(optarg, "w");
@@ -252,29 +260,41 @@ done_processing:
   }
 #endif
 
-  top->rst_ni = 0;
-
-  while (!dtm->done() && !jtag->done()) {
-
+  for (int i = 0; i < 10; i++) {
+    top->rst_ni = 0;
+    top->clk_i = 0;
+    top->eval();
 #if VM_TRACE
-      tfp->dump(main_time);
+    dump = tfp && trace_count >= start;
+    if (dump)
+      tfp->dump(static_cast<vluint64_t>(main_time * 2));
+#endif
+    top->clk_i = 1;
+    top->eval();
+#if VM_TRACE
+    if (dump)
+      tfp->dump(static_cast<vluint64_t>(main_time * 2 + 1));
+#endif
+    main_time ++;
+  }
+  top->rst_ni = 1;
+
+while (!dtm->done() && !jtag->done()) {
+    top->clk_i = 0;
+    top->eval();
+#if VM_TRACE
+    // dump = tfp && trace_count >= start;
+    // if (dump)
+      tfp->dump(static_cast<vluint64_t>(main_time * 2));
 #endif
 
-    if (main_time > 40) {
-        top->rst_ni = 1; // de-assert reset
-    }
-
-    if ((main_time % 10) == 0) {
-        top->clk_i = 1; // toggle clock
-    }
-
-    if ((main_time % 10) == 6) {
-        top->clk_i = 0;
-    }
-
+    top->clk_i = 1;
     top->eval();
+#if VM_TRACE
+    // if (dump)
+      tfp->dump(static_cast<vluint64_t>(main_time * 2 + 1));
+#endif
     main_time++;
-
   }
 
 #if VM_TRACE
@@ -285,17 +305,28 @@ done_processing:
 #endif
 
   if (dtm->exit_code()) {
-    fprintf(stderr, "*** FAILED *** (code = %d) after %ld cycles\n", dtm->exit_code(), main_time);
+    fprintf(stderr, "%s *** FAILED *** (code = %d) after %ld cycles\n", htif_argv[1], dtm->exit_code(), main_time);
     ret = dtm->exit_code();
   } else if (jtag->exit_code()) {
-    fprintf(stderr, "*** FAILED *** (code = %d, seed %d) after %ld cycles\n", jtag->exit_code(), random_seed, main_time);
+    fprintf(stderr, "%s *** FAILED *** (code = %d, seed %d) after %ld cycles\n", htif_argv[1], jtag->exit_code(), random_seed, main_time);
     ret = jtag->exit_code();
   } else {
-    fprintf(stderr, "Completed after %ld cycles\n", main_time);
+    fprintf(stderr, "%s completed after %ld cycles\n", htif_argv[1], main_time);
   }
 
   if (dtm) delete dtm;
   if (jtag) delete jtag;
+
+  std::clock_t c_end = std::clock();
+  auto t_end = std::chrono::high_resolution_clock::now();
+
+  if (perf) {
+    std::cout << std::fixed << std::setprecision(2) << "CPU time used: "
+              << 1000.0 * (c_end-c_start) / CLOCKS_PER_SEC << " ms\n"
+              << "Wall clock time passed: "
+              << std::chrono::duration<double, std::milli>(t_end-t_start).count()
+              << " ms\n";
+  }
 
   return ret;
 }
