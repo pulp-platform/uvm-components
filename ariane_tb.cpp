@@ -265,14 +265,11 @@ done_processing:
     top->clk_i = 0;
     top->eval();
 #if VM_TRACE
-    dump = tfp && trace_count >= start;
-    if (dump)
       tfp->dump(static_cast<vluint64_t>(main_time * 2));
 #endif
     top->clk_i = 1;
     top->eval();
 #if VM_TRACE
-    if (dump)
       tfp->dump(static_cast<vluint64_t>(main_time * 2 + 1));
 #endif
     main_time ++;
