@@ -16,6 +16,7 @@
 // under the License.
 
 #include "Variane_testharness.h"
+#include "verilator.h"
 #include "verilated.h"
 #include "verilated_vcd_c.h"
 #include "Variane_testharness__Dpi.h"
@@ -27,6 +28,10 @@
 
 #include <fesvr/dtm.h>
 #include "remote_bitbang.h"
+// This software is heavily based on Rocket Chip
+// Checkout this awesome project:
+// https://github.com/freechipsproject/rocket-chip/
+
 
 // This is a 64-bit integer to reduce wrap over issues and
 // allow modulus.  You can also use a double, if you wish.
@@ -220,11 +225,21 @@ done_processing:
 
   std::unique_ptr<Variane_testharness> top(new Variane_testharness);
 
+// #if VM_TRACE
+//     std::unique_ptr<VerilatedVcdC> tfp(new VerilatedVcdC);
+//     Verilated::traceEverOn(true);
+//     top->trace (tfp.get(), 99);
+//     tfp->open (vcd_file);
+// #endif
+
 #if VM_TRACE
-    std::unique_ptr<VerilatedVcdC> tfp(new VerilatedVcdC);
-    Verilated::traceEverOn(true);
-    top->trace (tfp.get(), 99);
-    tfp->open (vcd_file);
+  Verilated::traceEverOn(true); // Verilator must compute traced signals
+  std::unique_ptr<VerilatedVcdFILE> vcdfd(new VerilatedVcdFILE(vcdfile));
+  std::unique_ptr<VerilatedVcdC> tfp(new VerilatedVcdC(vcdfd.get()));
+  if (vcdfile) {
+    top->trace(tfp.get(), 99);  // Trace 99 levels of hierarchy
+    tfp->open("");
+  }
 #endif
 
   top->rst_ni = 0;
