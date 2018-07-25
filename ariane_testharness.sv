@@ -13,8 +13,6 @@
 // Description: Test-harness for Ariane
 //              Instantiates an AXI-Bus and memories
 
-import ariane_pkg::*;
-
 module ariane_testharness #(
         parameter logic [63:0] CACHE_START_ADDR  = 64'h8000_0000, // address on which to decide whether the request is cache-able or not
         parameter int unsigned AXI_ID_WIDTH      = 10,
@@ -34,6 +32,17 @@ module ariane_testharness #(
     logic        ndmreset_n;
     logic        debug_req;
 
+    int          jtag_enable;
+    logic        init_done;
+    logic [31:0] jtag_exit, dmi_exit;
+
+    logic        jtag_TCK;
+    logic        jtag_TMS;
+    logic        jtag_TDI;
+    logic        jtag_TRSTn;
+    logic        jtag_TDO_data;
+    logic        jtag_TDO_driven;
+
     logic        debug_req_valid;
     logic        debug_req_ready;
     logic [6:0]  debug_req_bits_addr;
@@ -43,6 +52,18 @@ module ariane_testharness #(
     logic        debug_resp_ready;
     logic [1:0]  debug_resp_bits_resp;
     logic [31:0] debug_resp_bits_data;
+
+    logic        jtag_req_valid;
+    logic [6:0]  jtag_req_bits_addr;
+    logic [1:0]  jtag_req_bits_op;
+    logic [31:0] jtag_req_bits_data;
+    logic        jtag_resp_ready;
+
+    logic        dmi_req_valid;
+    logic [6:0]  dmi_req_bits_addr;
+    logic [1:0]  dmi_req_bits_op;
+    logic [31:0] dmi_req_bits_data;
+    logic        dmi_resp_ready;
 
     assign test_en = 1'b0;
     assign ndmreset_n = ~ndmreset ;
@@ -68,29 +89,83 @@ module ariane_testharness #(
     // ---------------
     // Debug
     // ---------------
+    assign init_done = 1'b1;
+
+    initial begin
+        if (!$value$plusargs("jtag_rbb_enable=%b", jtag_enable)) jtag_enable = 'h0;
+    end
+
+    // debug if MUX
+    assign debug_req_valid     = (jtag_enable) ? jtag_req_valid     : dmi_req_valid;
+    assign debug_req_bits_addr = (jtag_enable) ? jtag_req_bits_addr : dmi_req_bits_addr;
+    assign debug_req_bits_op   = (jtag_enable) ? jtag_req_bits_op   : dmi_req_bits_op;
+    assign debug_req_bits_data = (jtag_enable) ? jtag_req_bits_data : dmi_req_bits_data;
+    assign debug_resp_ready    = (jtag_enable) ? jtag_resp_ready    : dmi_resp_ready;
+    assign exit_o              = (jtag_enable) ? jtag_exit          : dmi_exit;
+
+    // SiFive's SimJTAG Module
+    // Converts to DPI calls
+    SimJTAG i_SimJTAG (
+        .clock                ( clk_i                ),
+        .reset                ( ~rst_ni              ),
+        .enable               ( jtag_enable          ),
+        .init_done            ( init_done            ),
+        .jtag_TCK             ( jtag_TCK             ),
+        .jtag_TMS             ( jtag_TMS             ),
+        .jtag_TDI             ( jtag_TDI             ),
+        .jtag_TRSTn           ( jtag_TRSTn           ),
+        .jtag_TDO_data        ( jtag_TDO_data        ),
+        .jtag_TDO_driven      ( jtag_TDO_driven      ),
+        .exit                 ( jtag_exit            )
+    );
+
+    dmi_jtag i_dmi_jtag (
+        .clk_i                ( clk_i                ),
+        .rst_ni               ( rst_ni               ),
+
+        .dmi_rst_no           (                      ),
+        .dmi_req_valid_o      ( jtag_req_valid       ),
+        .dmi_req_ready_i      ( debug_req_ready      ),
+        .dmi_req_bits_addr_o  ( jtag_req_bits_addr   ),
+        .dmi_req_bits_op_o    ( jtag_req_bits_op     ),
+        .dmi_req_bits_data_o  ( jtag_req_bits_data   ),
+        .dmi_resp_valid_i     ( debug_resp_valid     ),
+        .dmi_resp_ready_o     ( jtag_resp_ready      ),
+        .dmi_resp_bits_resp_i ( debug_resp_bits_resp ),
+        .dmi_resp_bits_data_i ( debug_resp_bits_data ),
+
+        .tck_i                ( jtag_TCK             ),
+        .tms_i                ( jtag_TMS             ),
+        .trst_ni              ( jtag_TRSTn           ),
+        .td_i                 ( jtag_TDI             ),
+        .td_o                 ( jtag_TDO_driven      )
+    );
+
     // SiFive's SimDTM Module
     // Converts to DPI calls
     SimDTM i_SimDTM (
         .clk                  ( clk_i                ),
         .reset                ( ~rst_ni              ),
-        .debug_req_valid      ( debug_req_valid      ),
+        .debug_req_valid      ( dmi_req_valid        ),
         .debug_req_ready      ( debug_req_ready      ),
-        .debug_req_bits_addr  ( debug_req_bits_addr  ),
-        .debug_req_bits_op    ( debug_req_bits_op    ),
-        .debug_req_bits_data  ( debug_req_bits_data  ),
+        .debug_req_bits_addr  ( dmi_req_bits_addr    ),
+        .debug_req_bits_op    ( dmi_req_bits_op      ),
+        .debug_req_bits_data  ( dmi_req_bits_data    ),
         .debug_resp_valid     ( debug_resp_valid     ),
-        .debug_resp_ready     ( debug_resp_ready     ),
+        .debug_resp_ready     ( dmi_resp_ready       ),
         .debug_resp_bits_resp ( debug_resp_bits_resp ),
         .debug_resp_bits_data ( debug_resp_bits_data ),
-        .exit                 ( exit_o               )
+        .exit                 ( dmi_exit             )
     );
+
     // debug module
     dm_top #(
-        .NrHarts      ( 1                   ), // current implementation only supports 1 hart
-        .AxiIdWidth   ( AXI_ID_WIDTH_SLAVES ),
-        .AxiAddrWidth ( AXI_ADDRESS_WIDTH   ),
-        .AxiDataWidth ( AXI_DATA_WIDTH      ),
-        .AxiUserWidth ( AXI_USER_WIDTH      )
+        // current implementation only supports 1 hart
+        .NrHarts              ( 1                    ),
+        .AxiIdWidth           ( AXI_ID_WIDTH_SLAVES  ),
+        .AxiAddrWidth         ( AXI_ADDRESS_WIDTH    ),
+        .AxiDataWidth         ( AXI_DATA_WIDTH       ),
+        .AxiUserWidth         ( AXI_USER_WIDTH       )
     ) i_dm_top (
         .clk_i                ( clk_i                ),
         .rst_ni               ( rst_ni               ), // PoR

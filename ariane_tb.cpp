@@ -37,17 +37,21 @@
 // allow modulus.  You can also use a double, if you wish.
 static vluint64_t main_time = 0;
 
+static const char *verilog_plusargs[] = {"jtag_rbb_enable"};
+// static const char * verilog_plusargs [] = {\
+//                                             "tilelink_timeout",\
+//                                             "max_core_cycles",\
+//                                             0};
 extern dtm_t* dtm;
 extern remote_bitbang_t * jtag;
 
-void handle_sigterm(int sig)
-{
+void handle_sigterm(int sig) {
   dtm->stop();
 }
 
-double sc_time_stamp () {       // Called by $time in Verilog
-    return main_time;     // converts to double, to match
-                                // what SystemC does
+// Called by $time in Verilog converts to double, to match what SystemC does
+double sc_time_stamp () {
+    return main_time;
 }
 
 static void usage(const char * program_name) {
@@ -106,6 +110,7 @@ int main(int argc, char **argv) {
   uint64_t start = 0;
 #endif
   char ** htif_argv = NULL;
+  int verilog_plusargs_legal = 1;
 
   while (1) {
     static struct option long_options[] = {
@@ -171,7 +176,24 @@ int main(int argc, char **argv) {
 #endif
         else if (arg.substr(0, 12) == "+cycle-count")
           c = 'c';
-
+        // If we don't find a legacy '+' EMULATOR argument, it still could be
+        // a VERILOG_PLUSARG and not an error.
+        else if (verilog_plusargs_legal) {
+          const char ** plusarg = &verilog_plusargs[0];
+          int legal_verilog_plusarg = 0;
+          while (*plusarg && (legal_verilog_plusarg == 0)){
+            if (arg.substr(1, strlen(*plusarg)) == *plusarg) {
+              legal_verilog_plusarg = 1;
+            }
+            plusarg ++;
+          }
+          if (!legal_verilog_plusarg) {
+            verilog_plusargs_legal = 0;
+          } else {
+            c = 'P';
+          }
+          goto retry;
+        }
         // If we STILL don't find a legacy '+' argument, it still could be
         // an HTIF (HOST) argument and not an error. If this is the case, then
         // we're done processing EMULATOR and VERILOG arguments.
@@ -214,23 +236,14 @@ done_processing:
   htif_argv[0] = argv[0];
   for (int i = 1; optind < argc;) htif_argv[i++] = argv[optind++];
 
-
-  // const char *vcd_file = "new_debug.vcd";
   const char *vcd_file = NULL;
   Verilated::commandArgs(argc, argv);
 
-  jtag = new remote_bitbang_t(0);
-  dtm = new dtm_t(argc, argv);
+  jtag = new remote_bitbang_t(rbb_port);
+  dtm = new dtm_t(htif_argc, htif_argv);
   signal(SIGTERM, handle_sigterm);
 
   std::unique_ptr<Variane_testharness> top(new Variane_testharness);
-
-// #if VM_TRACE
-//     std::unique_ptr<VerilatedVcdC> tfp(new VerilatedVcdC);
-//     Verilated::traceEverOn(true);
-//     top->trace (tfp.get(), 99);
-//     tfp->open (vcd_file);
-// #endif
 
 #if VM_TRACE
   Verilated::traceEverOn(true); // Verilator must compute traced signals
@@ -244,7 +257,7 @@ done_processing:
 
   top->rst_ni = 0;
 
-  while (!dtm->done()) { // && !jtag->done()
+  while (!dtm->done() && !jtag->done()) {
 
 #if VM_TRACE
       tfp->dump(main_time);
@@ -268,7 +281,10 @@ done_processing:
   }
 
 #if VM_TRACE
-    tfp->close ();
+  if (tfp)
+    tfp->close();
+  if (vcdfile)
+    fclose(vcdfile);
 #endif
 
   if (dtm->exit_code()) {
