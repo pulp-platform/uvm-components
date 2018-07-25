@@ -302,8 +302,6 @@ module ariane_testharness #(
         .time_i               ( '0               ),
         .time_irq_i           ( '0               ),
         .debug_req_i          ( debug_req        ),
-        .flush_dcache_i       ( 1'b0             ),
-        .flush_dcache_ack_o   (                  ),
         .data_if              ( slave[2]         ),
         .bypass_if            ( slave[1]         ),
         .instr_if             ( slave[0]         )

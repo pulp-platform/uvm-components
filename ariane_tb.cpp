@@ -38,10 +38,7 @@
 static vluint64_t main_time = 0;
 
 static const char *verilog_plusargs[] = {"jtag_rbb_enable"};
-// static const char * verilog_plusargs [] = {\
-//                                             "tilelink_timeout",\
-//                                             "max_core_cycles",\
-//                                             0};
+
 extern dtm_t* dtm;
 extern remote_bitbang_t * jtag;
 
