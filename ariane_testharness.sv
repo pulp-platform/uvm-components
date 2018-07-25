@@ -96,19 +96,19 @@ module ariane_testharness #(
     end
 
     // debug if MUX
-    assign debug_req_valid     = (jtag_enable) ? jtag_req_valid     : dmi_req_valid;
-    assign debug_req_bits_addr = (jtag_enable) ? jtag_req_bits_addr : dmi_req_bits_addr;
-    assign debug_req_bits_op   = (jtag_enable) ? jtag_req_bits_op   : dmi_req_bits_op;
-    assign debug_req_bits_data = (jtag_enable) ? jtag_req_bits_data : dmi_req_bits_data;
-    assign debug_resp_ready    = (jtag_enable) ? jtag_resp_ready    : dmi_resp_ready;
-    assign exit_o              = (jtag_enable) ? jtag_exit          : dmi_exit;
+    assign debug_req_valid     = (jtag_enable[0]) ? jtag_req_valid     : dmi_req_valid;
+    assign debug_req_bits_addr = (jtag_enable[0]) ? jtag_req_bits_addr : dmi_req_bits_addr;
+    assign debug_req_bits_op   = (jtag_enable[0]) ? jtag_req_bits_op   : dmi_req_bits_op;
+    assign debug_req_bits_data = (jtag_enable[0]) ? jtag_req_bits_data : dmi_req_bits_data;
+    assign debug_resp_ready    = (jtag_enable[0]) ? jtag_resp_ready    : dmi_resp_ready;
+    assign exit_o              = (jtag_enable[0]) ? jtag_exit          : dmi_exit;
 
     // SiFive's SimJTAG Module
     // Converts to DPI calls
     SimJTAG i_SimJTAG (
         .clock                ( clk_i                ),
         .reset                ( ~rst_ni              ),
-        .enable               ( jtag_enable          ),
+        .enable               ( jtag_enable[0]       ),
         .init_done            ( init_done            ),
         .jtag_TCK             ( jtag_TCK             ),
         .jtag_TMS             ( jtag_TMS             ),
