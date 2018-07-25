@@ -48,6 +48,44 @@ double sc_time_stamp () {       // Called by $time in Verilog
 static void usage(const char * program_name) {
   printf("Usage: %s [EMULATOR OPTION]... [VERILOG PLUSARG]... [HOST OPTION]... BINARY [TARGET OPTION]...\n",
          program_name);
+  fputs("\
+Run a BINARY on the Ariane emulator.\n\
+\n\
+Mandatory arguments to long options are mandatory for short options too.\n\
+\n\
+EMULATOR OPTIONS\n\
+  -r, --rbb-port=PORT      Use PORT for remote bit bang (with OpenOCD and GDB) \n\
+                           If not specified, a random port will be chosen\n\
+                           automatically.\n\
+", stdout);
+#if VM_TRACE == 0
+  fputs("\
+\n\
+EMULATOR DEBUG OPTIONS (only supported in debug build -- try `make debug`)\n",
+        stdout);
+#endif
+  fputs("\
+  -v, --vcd=FILE,          Write vcd trace to FILE (or '-' for stdout)\n\
+", stdout);
+  // fputs("\n" PLUSARG_USAGE_OPTIONS, stdout);
+  fputs("\n" HTIF_USAGE_OPTIONS, stdout);
+  printf("\n"
+"EXAMPLES\n"
+"  - run a bare metal test:\n"
+"    %s $RISCV/riscv64-unknown-elf/share/riscv-tests/isa/rv64ui-p-add\n"
+"  - run a bare metal test showing cycle-by-cycle information:\n"
+"    %s spike-dasm < < trace_core_00_0.dasm > trace.out\n"
+#if VM_TRACE
+"  - run a bare metal test to generate a VCD waveform:\n"
+"    %s -v rv64ui-p-add.vcd $RISCV/riscv64-unknown-elf/share/riscv-tests/isa/rv64ui-p-add\n"
+#endif
+"  - run an ELF (you wrote, called 'hello') using the proxy kernel:\n"
+"    %s pk hello\n",
+         program_name, program_name, program_name
+#if VM_TRACE
+         , program_name
+#endif
+         );
 }
 
 int main(int argc, char **argv) {
@@ -181,21 +219,21 @@ done_processing:
   signal(SIGTERM, handle_sigterm);
 
   std::unique_ptr<Variane_testharness> top(new Variane_testharness);
-  std::unique_ptr<VerilatedVcdC> tfp(new VerilatedVcdC);
 
-  if (vcd_file != NULL) {
+#if VM_TRACE
+    std::unique_ptr<VerilatedVcdC> tfp(new VerilatedVcdC);
     Verilated::traceEverOn(true);
     top->trace (tfp.get(), 99);
     tfp->open (vcd_file);
-  }
+#endif
 
   top->rst_ni = 0;
 
-  while (!dtm->done() && !jtag->done()) {
+  while (!dtm->done()) { // && !jtag->done()
 
-    if (vcd_file != NULL) {
+#if VM_TRACE
       tfp->dump(main_time);
-    }
+#endif
 
     if (main_time > 40) {
         top->rst_ni = 1; // de-assert reset
@@ -214,9 +252,9 @@ done_processing:
 
   }
 
-  if (vcd_file != NULL) {
+#if VM_TRACE
     tfp->close ();
-  }
+#endif
 
   if (dtm->exit_code()) {
     fprintf(stderr, "*** FAILED *** (code = %d) after %ld cycles\n", dtm->exit_code(), main_time);
