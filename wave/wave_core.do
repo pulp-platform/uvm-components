@@ -73,3 +73,9 @@ add wave -noupdate -group dm_top -group dm_mem /ariane_tb/dut/i_dm_top/i_dm_mem/
 add wave -noupdate -group bootrom /ariane_tb/dut/i_bootrom/*
 
 add wave -noupdate -group tracer_if /ariane_tb/dut/i_ariane/instr_tracer_i/tracer_if/*
+
+add wave -group SimJTAG /ariane_tb/dut/i_SimJTAG/*
+
+add wave -group dmi_jtag /ariane_tb/dut/i_dmi_jtag/*
+add wave -group dmi_jtag -group dmi_jtag_tap /ariane_tb/dut/i_dmi_jtag/i_dmi_jtag_tap/*
+add wave -group dmi_jtag -group dmi_cdc /ariane_tb/dut/i_dmi_jtag/i_dmi_cdc/*

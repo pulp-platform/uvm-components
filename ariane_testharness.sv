@@ -138,7 +138,8 @@ module ariane_testharness #(
         .tms_i                ( jtag_TMS             ),
         .trst_ni              ( jtag_TRSTn           ),
         .td_i                 ( jtag_TDI             ),
-        .td_o                 ( jtag_TDO_driven      )
+        .td_o                 ( jtag_TDO_data        ),
+        .tdo_oe_o             ( jtag_TDO_driven      )
     );
 
     // SiFive's SimDTM Module
