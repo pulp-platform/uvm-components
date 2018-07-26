@@ -58,12 +58,14 @@ module ariane_testharness #(
     logic [1:0]  jtag_req_bits_op;
     logic [31:0] jtag_req_bits_data;
     logic        jtag_resp_ready;
+    logic        jtag_resp_valid;
 
     logic        dmi_req_valid;
     logic [6:0]  dmi_req_bits_addr;
     logic [1:0]  dmi_req_bits_op;
     logic [31:0] dmi_req_bits_data;
     logic        dmi_resp_ready;
+    logic        dmi_resp_valid;
 
     assign test_en = 1'b0;
     assign ndmreset_n = ~ndmreset ;
@@ -89,7 +91,7 @@ module ariane_testharness #(
     // ---------------
     // Debug
     // ---------------
-    assign init_done = 1'b1;
+    assign init_done = rst_ni;
 
     initial begin
         if (!$value$plusargs("jtag_rbb_enable=%b", jtag_enable)) jtag_enable = 'h0;
@@ -102,6 +104,8 @@ module ariane_testharness #(
     assign debug_req_bits_data = (jtag_enable[0]) ? jtag_req_bits_data : dmi_req_bits_data;
     assign debug_resp_ready    = (jtag_enable[0]) ? jtag_resp_ready    : dmi_resp_ready;
     assign exit_o              = (jtag_enable[0]) ? jtag_exit          : dmi_exit;
+    assign jtag_resp_valid     = (jtag_enable[0]) ? debug_resp_valid   : 1'b0;
+    assign dmi_resp_valid      = (jtag_enable[0]) ? 1'b0               : debug_resp_valid;
 
     // SiFive's SimJTAG Module
     // Converts to DPI calls
@@ -129,7 +133,7 @@ module ariane_testharness #(
         .dmi_req_bits_addr_o  ( jtag_req_bits_addr   ),
         .dmi_req_bits_op_o    ( jtag_req_bits_op     ),
         .dmi_req_bits_data_o  ( jtag_req_bits_data   ),
-        .dmi_resp_valid_i     ( debug_resp_valid     ),
+        .dmi_resp_valid_i     ( jtag_resp_valid      ),
         .dmi_resp_ready_o     ( jtag_resp_ready      ),
         .dmi_resp_bits_resp_i ( debug_resp_bits_resp ),
         .dmi_resp_bits_data_i ( debug_resp_bits_data ),
@@ -152,7 +156,7 @@ module ariane_testharness #(
         .debug_req_bits_addr  ( dmi_req_bits_addr    ),
         .debug_req_bits_op    ( dmi_req_bits_op      ),
         .debug_req_bits_data  ( dmi_req_bits_data    ),
-        .debug_resp_valid     ( debug_resp_valid     ),
+        .debug_resp_valid     ( dmi_resp_valid       ),
         .debug_resp_ready     ( dmi_resp_ready       ),
         .debug_resp_bits_resp ( debug_resp_bits_resp ),
         .debug_resp_bits_data ( debug_resp_bits_data ),
