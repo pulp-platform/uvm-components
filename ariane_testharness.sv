@@ -299,7 +299,7 @@ module ariane_testharness #(
         .clk_i                ( clk_i            ),
         .rst_ni               ( ndmreset_n       ),
         .test_en_i            ( test_en          ),
-        .boot_addr_i          ( 64'h10040        ), // start fetching from ROM
+        .boot_addr_i          ( 64'h10000        ), // start fetching from ROM
         .core_id_i            ( '0               ),
         .cluster_id_i         ( '0               ),
         .irq_i                ( '0               ),
