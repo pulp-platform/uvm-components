@@ -304,7 +304,6 @@ module ariane_testharness #(
         .cluster_id_i         ( '0               ),
         .irq_i                ( '0               ),
         .ipi_i                ( '0               ),
-        .time_i               ( '0               ),
         .time_irq_i           ( '0               ),
         .debug_req_i          ( debug_req        ),
         .data_if              ( slave[2]         ),
