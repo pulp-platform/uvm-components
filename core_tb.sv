@@ -174,41 +174,42 @@ module core_tb;
     );
 
     // connect core store interface
-    assign store_unit.address = {dut.ex_stage_i.lsu_i.i_store_unit.address_tag_o, dut.ex_stage_i.lsu_i.i_store_unit.address_index_o};
-    assign store_unit.data_wdata    = dut.ex_stage_i.lsu_i.i_store_unit.data_wdata_o;
-    assign store_unit.data_req      = dut.ex_stage_i.lsu_i.i_store_unit.data_req_o;
-    assign store_unit.data_we       = dut.ex_stage_i.lsu_i.i_store_unit.data_we_o;
-    assign store_unit.data_be       = dut.ex_stage_i.lsu_i.i_store_unit.data_be_o;
-    assign store_unit.data_gnt      = dut.ex_stage_i.lsu_i.i_store_unit.data_gnt_i;
-    assign store_unit.data_rvalid   = dut.ex_stage_i.lsu_i.i_store_unit.data_rvalid_i;
+    assign store_unit.address       = {dut.ex_stage_i.lsu_i.i_store_unit.req_port_o.address_tag, 
+                                       dut.ex_stage_i.lsu_i.i_store_unit.req_port_o.address_index};
+    assign store_unit.data_wdata    = dut.ex_stage_i.lsu_i.i_store_unit.req_port_o.data_wdata;
+    assign store_unit.data_req      = dut.ex_stage_i.lsu_i.i_store_unit.req_port_o.data_req;
+    assign store_unit.data_we       = dut.ex_stage_i.lsu_i.i_store_unit.req_port_o.data_we;
+    assign store_unit.data_be       = dut.ex_stage_i.lsu_i.i_store_unit.req_port_o.data_be;
+    assign store_unit.data_gnt      = dut.ex_stage_i.lsu_i.i_store_unit.req_port_i.data_gnt;
+    assign store_unit.data_rvalid   = dut.ex_stage_i.lsu_i.i_store_unit.req_port_i.data_rvalid;
     assign store_unit.data_rdata    = '0;
 
     // connect load interface
-    assign load_unit.address_index = dut.ex_stage_i.lsu_i.i_load_unit.address_index_o;
-    assign load_unit.address_tag = dut.ex_stage_i.lsu_i.i_load_unit.address_tag_o;
-    assign load_unit.data_wdata = dut.ex_stage_i.lsu_i.i_load_unit.data_wdata_o;
-    assign load_unit.data_we = dut.ex_stage_i.lsu_i.i_load_unit.data_we_o;
-    assign load_unit.data_req = dut.ex_stage_i.lsu_i.i_load_unit.data_req_o;
-    assign load_unit.tag_valid = dut.ex_stage_i.lsu_i.i_load_unit.tag_valid_o;
-    assign load_unit.data_be = dut.ex_stage_i.lsu_i.i_load_unit.data_be_o;
-    assign load_unit.kill_req = dut.ex_stage_i.lsu_i.i_load_unit.kill_req_o;
+    assign load_unit.address_index = dut.ex_stage_i.lsu_i.i_load_unit.req_port_o.address_index;
+    assign load_unit.address_tag   = dut.ex_stage_i.lsu_i.i_load_unit.req_port_o.address_tag;
+    assign load_unit.data_wdata    = dut.ex_stage_i.lsu_i.i_load_unit.req_port_o.data_wdata;
+    assign load_unit.data_we       = dut.ex_stage_i.lsu_i.i_load_unit.req_port_o.data_we;
+    assign load_unit.data_req      = dut.ex_stage_i.lsu_i.i_load_unit.req_port_o.data_req;
+    assign load_unit.tag_valid     = dut.ex_stage_i.lsu_i.i_load_unit.req_port_o.tag_valid;
+    assign load_unit.data_be       = dut.ex_stage_i.lsu_i.i_load_unit.req_port_o.data_be;
+    assign load_unit.kill_req      = dut.ex_stage_i.lsu_i.i_load_unit.req_port_o.kill_req;
 
-    assign load_unit.data_rvalid = dut.ex_stage_i.lsu_i.i_load_unit.data_rvalid_i;
-    assign load_unit.data_rdata = dut.ex_stage_i.lsu_i.i_load_unit.data_rdata_i;
-    assign load_unit.data_gnt = dut.ex_stage_i.lsu_i.i_load_unit.data_gnt_i;
+    assign load_unit.data_rvalid   = dut.ex_stage_i.lsu_i.i_load_unit.req_port_i.data_rvalid;
+    assign load_unit.data_rdata    = dut.ex_stage_i.lsu_i.i_load_unit.req_port_i.data_rdata;
+    assign load_unit.data_gnt      = dut.ex_stage_i.lsu_i.i_load_unit.req_port_i.data_gnt;
     // connect ptw interface
-    assign ptw.address_index = dut.ex_stage_i.lsu_i.i_mmu.i_ptw.address_index_o;
-    assign ptw.address_tag = dut.ex_stage_i.lsu_i.i_mmu.i_ptw.address_tag_o;
-    assign ptw.data_wdata = dut.ex_stage_i.lsu_i.i_mmu.i_ptw.data_wdata_o;
-    assign ptw.data_we = dut.ex_stage_i.lsu_i.i_mmu.i_ptw.data_we_o;
-    assign ptw.data_req = dut.ex_stage_i.lsu_i.i_mmu.i_ptw.data_req_o;
-    assign ptw.tag_valid = dut.ex_stage_i.lsu_i.i_mmu.i_ptw.tag_valid_o;
-    assign ptw.data_be = dut.ex_stage_i.lsu_i.i_mmu.i_ptw.data_be_o;
-    assign ptw.kill_req = dut.ex_stage_i.lsu_i.i_mmu.i_ptw.kill_req_o;
+    assign ptw.address_index       = dut.ex_stage_i.lsu_i.i_mmu.i_ptw.req_port_o.address_index;
+    assign ptw.address_tag         = dut.ex_stage_i.lsu_i.i_mmu.i_ptw.req_port_o.address_tag;
+    assign ptw.data_wdata          = dut.ex_stage_i.lsu_i.i_mmu.i_ptw.req_port_o.data_wdata;
+    assign ptw.data_we             = dut.ex_stage_i.lsu_i.i_mmu.i_ptw.req_port_o.data_we;
+    assign ptw.data_req            = dut.ex_stage_i.lsu_i.i_mmu.i_ptw.req_port_o.data_req;
+    assign ptw.tag_valid           = dut.ex_stage_i.lsu_i.i_mmu.i_ptw.req_port_o.tag_valid;
+    assign ptw.data_be             = dut.ex_stage_i.lsu_i.i_mmu.i_ptw.req_port_o.data_be;
+    assign ptw.kill_req            = dut.ex_stage_i.lsu_i.i_mmu.i_ptw.req_port_o.kill_req;
 
-    assign ptw.data_rvalid = dut.ex_stage_i.lsu_i.i_mmu.i_ptw.data_rvalid_i;
-    assign ptw.data_rdata = dut.ex_stage_i.lsu_i.i_mmu.i_ptw.data_rdata_i;
-    assign ptw.data_gnt = dut.ex_stage_i.lsu_i.i_mmu.i_ptw.data_gnt_i;
+    assign ptw.data_rvalid         = dut.ex_stage_i.lsu_i.i_mmu.i_ptw.req_port_i.data_rvalid;
+    assign ptw.data_rdata          = dut.ex_stage_i.lsu_i.i_mmu.i_ptw.req_port_i.data_rdata;
+    assign ptw.data_gnt            = dut.ex_stage_i.lsu_i.i_mmu.i_ptw.req_port_i.data_gnt;
 
     // Clock process
     initial begin
